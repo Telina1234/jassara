@@ -22,6 +22,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Space;
@@ -46,6 +47,7 @@ public class MainActivity extends Activity {
     private FrameLayout drawerLayer;
     private TextView toolbarTitle;
     private boolean adminUnlocked;
+    private Long editingSongId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,9 +60,17 @@ public class MainActivity extends Activity {
         window.setNavigationBarColor(NAVY);
 
         root = new FrameLayout(this);
+        root.setBackgroundColor(darkMode() ? Color.rgb(7, 18, 38) : SURFACE);
+        ImageView watermark = new ImageView(this);
+        watermark.setImageResource(getResources().getIdentifier("victory_voice_logo", "drawable", getPackageName()));
+        watermark.setAlpha(darkMode() ? 0.05f : 0.08f);
+        watermark.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
+        watermark.setPadding(dp(34), dp(120), dp(34), dp(80));
+        root.addView(watermark, match());
+
         LinearLayout main = new LinearLayout(this);
         main.setOrientation(LinearLayout.VERTICAL);
-        main.setBackgroundColor(SURFACE);
+        main.setBackgroundColor(Color.TRANSPARENT);
         root.addView(main, match());
 
         main.addView(createToolbar(), new LinearLayout.LayoutParams(matchWidth(), dp(76)));
@@ -76,7 +86,7 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (toolbarTitle != null && !"Tononkira".contentEquals(toolbarTitle.getText())) {
+        if (toolbarTitle != null && !tr("app").contentEquals(toolbarTitle.getText())) {
             showHome();
             return;
         }
@@ -98,14 +108,24 @@ public class MainActivity extends Activity {
         toolbarTitle.setGravity(Gravity.CENTER_VERTICAL);
         FrameLayout.LayoutParams titleParams = new FrameLayout.LayoutParams(matchWidth(), matchHeight());
         titleParams.leftMargin = dp(72);
-        titleParams.rightMargin = dp(76);
+        titleParams.rightMargin = dp(132);
         toolbar.addView(toolbarTitle, titleParams);
 
         TextView search = toolbarButton("⌕", 28);
         FrameLayout.LayoutParams searchParams = new FrameLayout.LayoutParams(dp(58), matchHeight());
         searchParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        searchParams.rightMargin = dp(58);
         toolbar.addView(search, searchParams);
         search.setOnClickListener(v -> showSearch(""));
+
+        TextView theme = toolbarButton(darkMode() ? "☼" : "◐", 24);
+        FrameLayout.LayoutParams themeParams = new FrameLayout.LayoutParams(dp(58), matchHeight());
+        themeParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        toolbar.addView(theme, themeParams);
+        theme.setOnClickListener(v -> {
+            preferences.edit().putBoolean("dark_mode", !darkMode()).apply();
+            recreate();
+        });
         return toolbar;
     }
 
@@ -120,10 +140,10 @@ public class MainActivity extends Activity {
 
         LinearLayout drawer = new LinearLayout(this);
         drawer.setOrientation(LinearLayout.VERTICAL);
-        drawer.setBackgroundColor(Color.WHITE);
+        drawer.setBackgroundColor(cardFill());
         drawer.setPadding(0, 0, 0, dp(12));
         GradientDrawable drawerBg = new GradientDrawable();
-        drawerBg.setColor(Color.WHITE);
+        drawerBg.setColor(cardFill());
         drawerBg.setCornerRadii(new float[]{0, 0, dp(28), dp(28), dp(28), dp(28), 0, 0});
         drawer.setBackground(drawerBg);
         drawer.setElevation(dp(10));
@@ -135,9 +155,6 @@ public class MainActivity extends Activity {
         headerText.setGravity(Gravity.CENTER_VERTICAL);
         headerText.setPadding(dp(28), dp(12), dp(18), dp(12));
         headerText.addView(label(tr("app"), 34, Color.WHITE, Typeface.BOLD));
-        TextView site = label("serasera.org", 18, Color.rgb(204, 233, 255), Typeface.BOLD);
-        site.setPadding(0, dp(6), 0, 0);
-        headerText.addView(site);
         header.addView(headerText, match());
         drawer.addView(header, new LinearLayout.LayoutParams(matchWidth(), dp(168)));
 
@@ -161,13 +178,13 @@ public class MainActivity extends Activity {
         item.setGravity(Gravity.CENTER_VERTICAL);
         item.setPadding(dp(26), 0, dp(18), 0);
         item.setClickable(true);
-        item.setBackgroundColor(Color.WHITE);
+        item.setBackgroundColor(cardFill());
 
         TextView iconView = label(icon, 28, BLUE, Typeface.BOLD);
         iconView.setGravity(Gravity.CENTER);
         item.addView(iconView, new LinearLayout.LayoutParams(dp(44), matchHeight()));
 
-        TextView titleView = label(title, 18, TEXT, Typeface.BOLD);
+        TextView titleView = label(title, 18, primaryText(), Typeface.BOLD);
         titleView.setPadding(dp(16), 0, 0, 0);
         item.addView(titleView, new LinearLayout.LayoutParams(0, matchHeight(), 1));
 
@@ -251,7 +268,7 @@ public class MainActivity extends Activity {
         setTitleText(tr("lyrics"));
         LinearLayout body = screen();
 
-        TextView title = label(song.title, 30, NAVY, Typeface.BOLD);
+        TextView title = label(song.title, 30, primaryText(), Typeface.BOLD);
         title.setPadding(0, dp(18), 0, 0);
         body.addView(title);
         TextView artist = label(song.artist, 18, BLUE, Typeface.BOLD);
@@ -265,24 +282,38 @@ public class MainActivity extends Activity {
             database.setFavorite(song.id, favorite[0]);
             favButton.setText(favorite[0] ? tr("remove_fav") : tr("add_fav"));
         });
-        body.addView(favButton, spaced(wrap(), dp(40), 0, 0, 0, dp(14)));
+        LinearLayout detailActions = new LinearLayout(this);
+        detailActions.setOrientation(LinearLayout.HORIZONTAL);
+        detailActions.setGravity(Gravity.CENTER_VERTICAL);
+        detailActions.addView(favButton, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        Space alignSpace = new Space(this);
+        detailActions.addView(alignSpace, new LinearLayout.LayoutParams(0, dp(40), 1));
+        Button left = translucentButton("≡", null);
+        Button center = translucentButton("≡", null);
+        Button right = translucentButton("≡", null);
+        detailActions.addView(left, new LinearLayout.LayoutParams(dp(38), dp(38)));
+        detailActions.addView(center, new LinearLayout.LayoutParams(dp(38), dp(38)));
+        detailActions.addView(right, new LinearLayout.LayoutParams(dp(38), dp(38)));
+        body.addView(detailActions, spaced(matchWidth(), dp(42), 0, 0, 0, dp(14)));
 
         int savedSize = preferences.getInt("lyrics_size", 19);
-        TextView lyrics = label(song.lyrics, savedSize, TEXT, Typeface.NORMAL);
+        TextView lyrics = label(song.lyrics, savedSize, primaryText(), Typeface.NORMAL);
+        String align = preferences.getString("lyrics_align", "center");
+        lyrics.setGravity(gravityForAlign(align));
         lyrics.setLineSpacing(dp(4), 1.08f);
         lyrics.setPadding(dp(20), dp(20), dp(20), dp(20));
-        lyrics.setBackground(cardBackground(Color.WHITE, Color.rgb(210, 225, 255)));
+        lyrics.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
         body.addView(lyrics, spaced(matchWidth(), dp(430), 0, 0, 0, dp(16)));
 
         LinearLayout zoom = new LinearLayout(this);
         zoom.setOrientation(LinearLayout.HORIZONTAL);
         zoom.setGravity(Gravity.CENTER_VERTICAL);
-        Button minus = smallButton("-", null, true);
-        Button plus = smallButton("+", null, true);
+        Button minus = translucentButton("-", null);
+        Button plus = translucentButton("+", null);
         Space gap = new Space(this);
-        zoom.addView(minus, new LinearLayout.LayoutParams(dp(48), dp(42)));
+        zoom.addView(minus, new LinearLayout.LayoutParams(dp(36), dp(36)));
         zoom.addView(gap, new LinearLayout.LayoutParams(0, dp(42), 1));
-        zoom.addView(plus, new LinearLayout.LayoutParams(dp(48), dp(42)));
+        zoom.addView(plus, new LinearLayout.LayoutParams(dp(36), dp(36)));
         final int[] size = {savedSize};
         minus.setOnClickListener(v -> {
             size[0] = Math.max(14, size[0] - 2);
@@ -293,6 +324,18 @@ public class MainActivity extends Activity {
             size[0] = Math.min(34, size[0] + 2);
             lyrics.setTextSize(size[0]);
             preferences.edit().putInt("lyrics_size", size[0]).apply();
+        });
+        left.setOnClickListener(v -> {
+            preferences.edit().putString("lyrics_align", "left").apply();
+            lyrics.setGravity(Gravity.START);
+        });
+        center.setOnClickListener(v -> {
+            preferences.edit().putString("lyrics_align", "center").apply();
+            lyrics.setGravity(Gravity.CENTER_HORIZONTAL);
+        });
+        right.setOnClickListener(v -> {
+            preferences.edit().putString("lyrics_align", "right").apply();
+            lyrics.setGravity(Gravity.END);
         });
         body.addView(zoom, spaced(matchWidth(), dp(46), 0, 0, 0, dp(22)));
         render(body);
@@ -306,9 +349,15 @@ public class MainActivity extends Activity {
         }
 
         LinearLayout body = screen();
+        Song editing = findSong(editingSongId);
         EditText title = input(tr("song_title"));
         EditText artist = input(tr("artist_name"));
         EditText lyrics = input(tr("lyrics"));
+        if (editing != null) {
+            title.setText(editing.title);
+            artist.setText(editing.artist);
+            lyrics.setText(editing.lyrics);
+        }
         lyrics.setMinLines(6);
         lyrics.setGravity(Gravity.TOP | Gravity.START);
         lyrics.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
@@ -319,7 +368,7 @@ public class MainActivity extends Activity {
         LinearLayout actions = new LinearLayout(this);
         actions.setOrientation(LinearLayout.HORIZONTAL);
         actions.setGravity(Gravity.CENTER_VERTICAL);
-        Button save = smallButton(tr("save"), v -> {
+        Button save = smallButton(editing == null ? tr("save") : tr("update"), v -> {
             String t = title.getText().toString();
             String a = artist.getText().toString();
             String l = lyrics.getText().toString();
@@ -327,23 +376,39 @@ public class MainActivity extends Activity {
                 toast(tr("fill_all"));
                 return;
             }
-            database.addSong(t, a, l);
+            if (editingSongId == null) {
+                database.addSong(t, a, l);
+            } else {
+                database.updateSong(editingSongId, t, a, l);
+                editingSongId = null;
+            }
             title.setText("");
             artist.setText("");
             lyrics.setText("");
             toast(tr("song_added"));
-            showHome();
+            showAdmin();
         }, true);
         Button lock = smallButton(tr("lock"), v -> {
             adminUnlocked = false;
+            editingSongId = null;
             showHome();
         }, false);
         actions.addView(save, new LinearLayout.LayoutParams(wrap(), dp(40)));
         Space actionGap = new Space(this);
         actions.addView(actionGap, new LinearLayout.LayoutParams(dp(10), dp(40)));
+        if (editing != null) {
+            Button cancel = smallButton(tr("cancel"), v -> {
+                editingSongId = null;
+                showAdmin();
+            }, false);
+            actions.addView(cancel, new LinearLayout.LayoutParams(wrap(), dp(40)));
+            Space cancelGap = new Space(this);
+            actions.addView(cancelGap, new LinearLayout.LayoutParams(dp(10), dp(40)));
+        }
         actions.addView(lock, new LinearLayout.LayoutParams(wrap(), dp(40)));
         body.addView(actions, spaced(matchWidth(), dp(44), 0, dp(18), 0, dp(28)));
 
+        body.addView(smallButton(tr("admin_list"), v -> showAdminListDialog(), false), spaced(wrap(), dp(40), 0, 0, 0, dp(18)));
         render(body);
     }
 
@@ -398,7 +463,12 @@ public class MainActivity extends Activity {
     private void showAbout() {
         setTitleText(tr("about"));
         LinearLayout body = screen();
-        body.addView(note(tr("about_text")));
+        String[] lines = tr("about_text").split("\\n", 2);
+        TextView version = note(lines[0]);
+        body.addView(version, spaced(matchWidth(), wrap(), 0, 0, 0, 0));
+        Space spacer = new Space(this);
+        body.addView(spacer, new LinearLayout.LayoutParams(matchWidth(), dp(420)));
+        body.addView(note(lines.length > 1 ? lines[1] : "Copyright by Telina Randrenanja"));
         render(body);
     }
 
@@ -438,6 +508,28 @@ public class MainActivity extends Activity {
         dialog.show();
     }
 
+    private void showAdminListDialog() {
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+        list.setPadding(dp(12), dp(8), dp(12), dp(8));
+        for (Song song : database.allSongs()) {
+            list.addView(adminSongCard(song));
+        }
+        scroll.addView(list, new ScrollView.LayoutParams(matchWidth(), wrap()));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(tr("admin_list"))
+                .setView(scroll)
+                .setNegativeButton(tr("close"), null)
+                .create();
+        dialog.setOnShowListener(d -> {
+            ViewGroup parent = (ViewGroup) list.getParent();
+            parent.setTag(dialog);
+        });
+        dialog.show();
+    }
+
     private void addSongCards(LinearLayout parent, List<Song> songs, boolean showEmpty) {
         if (songs.isEmpty()) {
             if (showEmpty) {
@@ -454,13 +546,13 @@ public class MainActivity extends Activity {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(18), dp(16), dp(18), dp(16));
-        card.setBackground(cardBackground(Color.WHITE, Color.rgb(183, 211, 255)));
+        card.setBackground(cardBackground(cardFill(), Color.rgb(183, 211, 255)));
         card.setClickable(true);
         card.setElevation(dp(2));
 
         LinearLayout titleLine = new LinearLayout(this);
         titleLine.setGravity(Gravity.CENTER_VERTICAL);
-        TextView title = label(song.title, 20, TEXT, Typeface.BOLD);
+        TextView title = label(song.title, 20, primaryText(), Typeface.BOLD);
         titleLine.addView(title, new LinearLayout.LayoutParams(0, wrap(), 1));
         TextView star = label(database.isFavorite(song.id) ? "★" : "☆", 24, BLUE, Typeface.BOLD);
         titleLine.addView(star, new LinearLayout.LayoutParams(dp(34), wrap()));
@@ -478,15 +570,75 @@ public class MainActivity extends Activity {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setPadding(dp(18), dp(16), dp(18), dp(16));
-        card.setBackground(cardBackground(Color.WHITE, Color.rgb(183, 211, 255)));
+        card.setBackground(cardBackground(cardFill(), Color.rgb(183, 211, 255)));
         card.setClickable(true);
         card.setElevation(dp(2));
-        card.addView(label(title, 20, TEXT, Typeface.BOLD));
+        card.addView(label(title, 20, primaryText(), Typeface.BOLD));
         TextView sub = label(subtitle, 15, BLUE, Typeface.BOLD);
         sub.setPadding(0, dp(6), 0, 0);
         card.addView(sub);
         card.setOnClickListener(v -> action.run());
         return withMargin(card, 0, 0, 0, dp(14));
+    }
+
+    private View adminSongCard(Song song) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(dp(18), dp(16), dp(18), dp(16));
+        card.setBackground(cardBackground(darkMode() ? Color.rgb(13, 27, 51) : Color.WHITE, Color.rgb(183, 211, 255)));
+        card.addView(label(song.title, 20, darkMode() ? Color.WHITE : TEXT, Typeface.BOLD));
+        TextView artist = label(song.artist, 15, BLUE, Typeface.BOLD);
+        artist.setPadding(0, dp(4), 0, dp(10));
+        card.addView(artist);
+
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        Button edit = translucentButton("✎", v -> {
+            editingSongId = song.id;
+            dismissAncestorDialog((View) v);
+            showAdmin();
+        });
+        Button delete = translucentButton("🗑", v -> {
+            database.deleteSong(song.id);
+            if (editingSongId != null && editingSongId == song.id) {
+                editingSongId = null;
+            }
+            dismissAncestorDialog((View) v);
+            showAdmin();
+        });
+        row.addView(edit, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        Space gap = new Space(this);
+        row.addView(gap, new LinearLayout.LayoutParams(dp(10), dp(40)));
+        row.addView(delete, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        card.addView(row);
+        return withMargin(card, 0, 0, 0, dp(14));
+    }
+
+    private void dismissAncestorDialog(View view) {
+        View current = view;
+        while (current != null) {
+            Object tag = current.getTag();
+            if (tag instanceof AlertDialog) {
+                ((AlertDialog) tag).dismiss();
+                return;
+            }
+            if (!(current.getParent() instanceof View)) {
+                return;
+            }
+            current = (View) current.getParent();
+        }
+    }
+
+    private Song findSong(Long id) {
+        if (id == null) {
+            return null;
+        }
+        for (Song song : database.allSongs()) {
+            if (song.id == id) {
+                return song;
+            }
+        }
+        return null;
     }
 
     private View hero(String title, String subtitle) {
@@ -528,44 +680,44 @@ public class MainActivity extends Activity {
     }
 
     private TextView sectionTitle(String text) {
-        TextView view = label(text, 22, NAVY, Typeface.BOLD);
+        TextView view = label(text, 22, primaryText(), Typeface.BOLD);
         view.setPadding(0, dp(8), 0, dp(14));
         return view;
     }
 
     private TextView empty(String text) {
-        TextView view = label(text, 16, MUTED, Typeface.NORMAL);
+        TextView view = label(text, 16, mutedText(), Typeface.NORMAL);
         view.setGravity(Gravity.CENTER);
         view.setPadding(dp(18), dp(30), dp(18), dp(30));
-        view.setBackground(cardBackground(Color.WHITE, Color.rgb(220, 230, 245)));
+        view.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
         return view;
     }
 
     private TextView note(String text) {
-        TextView view = label(text, 16, MUTED, Typeface.NORMAL);
+        TextView view = label(text, 16, mutedText(), Typeface.NORMAL);
         view.setLineSpacing(dp(2), 1f);
         view.setPadding(dp(18), dp(18), dp(18), dp(18));
-        view.setBackground(cardBackground(Color.WHITE, Color.rgb(220, 230, 245)));
+        view.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
         return view;
     }
 
     private TextView settingRow(String title, String subtitle) {
-        TextView view = label(title + "\n" + subtitle, 16, TEXT, Typeface.BOLD);
+        TextView view = label(title + "\n" + subtitle, 16, primaryText(), Typeface.BOLD);
         view.setLineSpacing(dp(4), 1f);
         view.setPadding(dp(18), dp(16), dp(18), dp(16));
-        view.setBackground(cardBackground(Color.WHITE, Color.rgb(220, 230, 245)));
+        view.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
         return view;
     }
 
     private EditText input(String hint) {
         EditText edit = new EditText(this);
         edit.setHint(hint);
-        edit.setTextColor(TEXT);
-        edit.setHintTextColor(Color.rgb(130, 146, 170));
+        edit.setTextColor(primaryText());
+        edit.setHintTextColor(darkMode() ? Color.rgb(168, 181, 200) : Color.rgb(130, 146, 170));
         edit.setTextSize(16);
         edit.setSingleLine(false);
         edit.setPadding(dp(16), 0, dp(16), 0);
-        edit.setBackground(cardBackground(Color.WHITE, Color.rgb(170, 205, 255)));
+        edit.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
         return edit;
     }
 
@@ -576,7 +728,7 @@ public class MainActivity extends Activity {
         button.setTextSize(16);
         button.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
         button.setTextColor(primary ? Color.WHITE : BLUE);
-        button.setBackground(cardBackground(primary ? BLUE : Color.WHITE, BLUE));
+        button.setBackground(cardBackground(primary ? BLUE : cardFill(), BLUE));
         if (listener != null) {
             button.setOnClickListener(listener);
         }
@@ -591,6 +743,17 @@ public class MainActivity extends Activity {
         button.setMinimumHeight(0);
         button.setMinimumWidth(0);
         button.setPadding(dp(12), 0, dp(12), 0);
+        return button;
+    }
+
+    private Button translucentButton(String text, View.OnClickListener listener) {
+        Button button = smallButton(text, listener, true);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.argb(88, 29, 109, 255));
+        bg.setCornerRadius(dp(18));
+        bg.setStroke(dp(1), Color.argb(150, 255, 255, 255));
+        button.setBackground(bg);
+        button.setTextColor(Color.WHITE);
         return button;
     }
 
@@ -653,11 +816,37 @@ public class MainActivity extends Activity {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
+    private boolean darkMode() {
+        return preferences.getBoolean("dark_mode", false);
+    }
+
+    private int primaryText() {
+        return darkMode() ? Color.rgb(248, 250, 252) : TEXT;
+    }
+
+    private int mutedText() {
+        return darkMode() ? Color.rgb(168, 181, 200) : MUTED;
+    }
+
+    private int cardFill() {
+        return darkMode() ? Color.rgb(13, 27, 51) : Color.WHITE;
+    }
+
+    private int gravityForAlign(String align) {
+        if ("left".equals(align)) {
+            return Gravity.START;
+        }
+        if ("right".equals(align)) {
+            return Gravity.END;
+        }
+        return Gravity.CENTER_HORIZONTAL;
+    }
+
     private String tr(String key) {
         boolean en = "en".equals(preferences.getString("language", "fr"));
         switch (key) {
             case "app":
-                return "Tononkira";
+                return "Victory Voice";
             case "home":
                 return en ? "Home" : "Accueil";
             case "search":
@@ -732,6 +921,16 @@ public class MainActivity extends Activity {
                 return en ? "Use at least 4 characters." : "Choisissez au moins 4 caractères.";
             case "pass_changed":
                 return en ? "Password changed." : "Mot de passe admin changé.";
+            case "update":
+                return en ? "Update" : "Mettre à jour";
+            case "cancel":
+                return en ? "Cancel" : "Annuler";
+            case "edit":
+                return en ? "Edit" : "Modifier";
+            case "delete":
+                return en ? "Delete" : "Supprimer";
+            case "admin_list":
+                return en ? "Edit or delete a song" : "Modifier ou supprimer un chant";
             case "about_text":
                 return en ? "APK version 1.0\nCopyright by Telina Randrenanja" : "Version APK 1.0\nCopyright by Telina Randrenanja";
             default:

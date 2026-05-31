@@ -72,6 +72,20 @@ final class TononkiraDatabase extends SQLiteOpenHelper {
         return db.insert("songs", null, values);
     }
 
+    void updateSong(long id, String title, String artist, String lyrics) {
+        ContentValues values = new ContentValues();
+        values.put("title", title.trim());
+        values.put("artist", artist.trim());
+        values.put("lyrics", lyrics.trim());
+        getWritableDatabase().update("songs", values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
+    void deleteSong(long id) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete("favorites", "song_id = ?", new String[]{String.valueOf(id)});
+        db.delete("songs", "id = ?", new String[]{String.valueOf(id)});
+    }
+
     List<Song> allSongs() {
         return querySongs("SELECT s.id, s.title, s.artist, s.lyrics, f.song_id IS NOT NULL AS favorite " +
                 "FROM songs s LEFT JOIN favorites f ON f.song_id = s.id ORDER BY s.title COLLATE NOCASE", null);

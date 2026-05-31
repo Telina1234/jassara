@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Tononkira - Test navigateur</title>
+  <title>Victory Voice - Test navigateur</title>
+  <link rel="icon" href="victory_voice_logo.png">
   <style>
     :root {
       --navy: #020b24;
@@ -11,10 +12,22 @@
       --blue: #1d6dff;
       --cyan: #54d9ff;
       --surface: #f7faff;
+      --card-bg: #ffffff;
       --text: #1f2937;
       --muted: #64748b;
       --line: #b7d3ff;
       font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body.dark {
+      --surface: #071226;
+      --card-bg: #0d1b33;
+      --text: #f8fafc;
+      --muted: #a8b5c8;
+      --line: #244876;
+      background:
+        radial-gradient(circle at 82% 18%, rgba(84, 217, 255, .2), transparent 22rem),
+        linear-gradient(135deg, #020b24, #071226 48%, #0d1b33);
     }
 
     * { box-sizing: border-box; }
@@ -36,6 +49,29 @@
       box-shadow: 0 0 50px rgba(2, 11, 36, .24);
       overflow: hidden;
       position: relative;
+    }
+
+    .phone-shell::before {
+      content: "";
+      position: absolute;
+      inset: 120px 24px 40px;
+      background: url("victory_voice_logo.png") center 18% / min(76%, 310px) auto no-repeat;
+      opacity: .055;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .topbar,
+    main,
+    .drawer,
+    .zoom-control {
+      position: relative;
+    }
+
+    main,
+    .drawer,
+    .zoom-control {
+      z-index: 1;
     }
 
     .topbar {
@@ -142,7 +178,7 @@
     .title-row h2 {
       margin: 0;
       flex: 1;
-      color: var(--navy);
+      color: var(--text);
       font-size: 24px;
     }
 
@@ -154,7 +190,7 @@
       padding: 0 16px;
       margin-bottom: 16px;
       color: var(--text);
-      background: white;
+      background: var(--card-bg);
       font: inherit;
       outline: 0;
     }
@@ -168,7 +204,7 @@
       border: 1px solid var(--line);
       border-radius: 18px;
       padding: 18px;
-      background: white;
+      background: var(--card-bg);
       box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
       margin-bottom: 14px;
       cursor: pointer;
@@ -213,7 +249,7 @@
     .drawer-panel {
       width: min(340px, 84vw);
       height: 100%;
-      background: white;
+      background: var(--card-bg);
       border-radius: 0 28px 28px 0;
       overflow: hidden;
       box-shadow: 18px 0 42px rgba(0, 0, 0, .22);
@@ -256,7 +292,7 @@
       border: 0;
       padding: 0 28px;
       color: var(--text);
-      background: white;
+      background: var(--card-bg);
       font: inherit;
       font-weight: 800;
       text-align: left;
@@ -299,7 +335,7 @@
 
     .btn.secondary {
       color: var(--blue);
-      background: white;
+      background: var(--card-bg);
     }
 
     .form {
@@ -316,11 +352,11 @@
 
     .note,
     .lyrics {
-      border: 1px solid #dce8ff;
+      border: 1px solid var(--line);
       border-radius: 18px;
       padding: 18px;
       color: var(--muted);
-      background: white;
+      background: var(--card-bg);
       line-height: 1.55;
     }
 
@@ -341,10 +377,14 @@
       display: flex;
       align-items: center;
       gap: 14px;
-      border: 1px solid #dce8ff;
+      border: 1px solid var(--line);
+      color: var(--text);
+      text-align: left;
+      font: inherit;
+      cursor: pointer;
       border-radius: 18px;
       padding: 16px;
-      background: white;
+      background: var(--card-bg);
       box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
     }
 
@@ -380,7 +420,7 @@
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 3px;
-      background: #f3f7ff;
+      background: rgba(29, 109, 255, .08);
     }
 
     .segmented button {
@@ -402,14 +442,15 @@
       position: fixed;
       bottom: 18px;
       z-index: 70;
-      width: 52px;
-      height: 52px;
-      border: 0;
+      width: 36px;
+      height: 36px;
+      border: 1px solid rgba(255, 255, 255, .42);
       border-radius: 999px;
       color: white;
-      background: var(--blue);
-      box-shadow: 0 12px 30px rgba(29, 109, 255, .35);
-      font-size: 26px;
+      background: rgba(29, 109, 255, .34);
+      box-shadow: 0 10px 24px rgba(2, 11, 36, .22);
+      backdrop-filter: blur(12px);
+      font-size: 20px;
       font-weight: 900;
       cursor: pointer;
       display: none;
@@ -419,6 +460,45 @@
 
     #zoomOut { left: max(16px, calc(50% - 199px)); }
     #zoomIn { right: max(16px, calc(50% - 199px)); }
+
+    .align-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .align-btn {
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(29, 109, 255, .35);
+      border-radius: 12px;
+      color: var(--blue);
+      background: rgba(29, 109, 255, .08);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .align-btn.active {
+      color: white;
+      background: var(--blue);
+    }
+
+    .admin-list {
+      margin-top: 22px;
+    }
+
+    .admin-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .danger {
+      border-color: #ef4444;
+      color: #ef4444;
+      background: transparent;
+    }
 
     .toast {
       position: fixed;
@@ -457,7 +537,7 @@
       width: min(390px, 100%);
       border-radius: 22px;
       padding: 20px;
-      background: white;
+      background: var(--card-bg);
       box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
     }
 
@@ -465,6 +545,23 @@
       margin: 0 0 14px;
       color: var(--navy);
       font-size: 22px;
+    }
+
+    body.dark .modal-card h2 {
+      color: var(--text);
+    }
+
+    body.dark .setting-icon {
+      color: #dbeafe;
+      background: #17345e;
+    }
+
+    .about-note {
+      min-height: calc(100vh - 150px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      white-space: pre-line;
     }
 
     @media (min-width: 900px) {
@@ -490,15 +587,15 @@
   <div class="phone-shell">
     <header class="topbar">
       <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
-      <h1 id="pageTitle">Tononkira</h1>
+      <h1 id="pageTitle">Victory Voice</h1>
       <button class="icon-btn" id="topSearch" aria-label="Recherche">⌕</button>
+      <button class="icon-btn" id="themeToggle" aria-label="Mode sombre">◐</button>
     </header>
     <main id="app"></main>
     <aside class="drawer" id="drawer">
       <div class="drawer-panel">
         <div class="drawer-header">
-          <h2>Tononkira</h2>
-          <p>serasera.org</p>
+          <h2>Victory Voice</h2>
         </div>
         <button class="nav-item" data-view="home"><span>⌂</span><b data-i18n="home">Accueil</b></button>
         <button class="nav-item" data-view="search"><span>⌕</span><b data-i18n="search">Recherche</b></button>
@@ -525,6 +622,15 @@
       </div>
     </div>
   </div>
+  <div class="modal" id="adminListModal">
+    <div class="modal-card">
+      <h2 id="adminListTitle">Modifier ou supprimer un chant</h2>
+      <div id="adminListBody"></div>
+      <div class="actions">
+        <button class="btn small secondary" id="adminListClose">Fermer</button>
+      </div>
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
 
   <script>
@@ -540,7 +646,7 @@
 
     const i18n = {
       fr: {
-        appTitle: "Tononkira",
+        appTitle: "Victory Voice",
         home: "Accueil",
         search: "Recherche",
         artists: "Chanteurs",
@@ -588,10 +694,21 @@
         languageEn: "Language: English.",
         addedFav: "Ajouté aux favoris.",
         removedFav: "Retiré des favoris.",
+        themeDark: "Mode sombre",
+        themeLight: "Mode clair",
+        alignLeft: "Gauche",
+        alignCenter: "Centre",
+        alignRight: "Droite",
+        edit: "Modifier",
+        delete: "Supprimer",
+        update: "Mettre à jour",
+        cancel: "Annuler",
+        adminList: "Modifier ou supprimer un chant",
+        deleteConfirm: "Supprimer ce chant ?",
         aboutText: "Version APK 1.0\nCopyright by Telina Randrenanja"
       },
       en: {
-        appTitle: "Tononkira",
+        appTitle: "Victory Voice",
         home: "Home",
         search: "Search",
         artists: "Singers",
@@ -639,6 +756,17 @@
         languageEn: "Language: English.",
         addedFav: "Added to favorites.",
         removedFav: "Removed from favorites.",
+        themeDark: "Dark mode",
+        themeLight: "Light mode",
+        alignLeft: "Left",
+        alignCenter: "Center",
+        alignRight: "Right",
+        edit: "Edit",
+        delete: "Delete",
+        update: "Update",
+        cancel: "Cancel",
+        adminList: "Edit or delete a song",
+        deleteConfirm: "Delete this song?",
         aboutText: "APK version 1.0\nCopyright by Telina Randrenanja"
       }
     };
@@ -680,9 +808,14 @@
     const zoomOut = document.querySelector("#zoomOut");
     const zoomIn = document.querySelector("#zoomIn");
     const passwordModal = document.querySelector("#passwordModal");
+    const adminListModal = document.querySelector("#adminListModal");
+    const adminListBody = document.querySelector("#adminListBody");
+    const adminListTitle = document.querySelector("#adminListTitle");
     let adminUnlocked = false;
     let currentRoute = { name: "home", data: null };
     let lyricsSize = Number(localStorage.getItem("tononkira_lyrics_size") || 19);
+    let lyricsAlign = localStorage.getItem("victory_voice_lyrics_align") || "center";
+    let editingSongId = null;
 
     function lang() {
       return localStorage.getItem("tononkira_language") || "fr";
@@ -701,10 +834,14 @@
         node.textContent = L(node.dataset.i18n);
       });
       document.querySelector("#topSearch").setAttribute("aria-label", L("search"));
+      document.querySelector("#themeToggle").setAttribute("aria-label", document.body.classList.contains("dark") ? L("themeLight") : L("themeDark"));
+      document.querySelector("#themeToggle").textContent = document.body.classList.contains("dark") ? "☼" : "◐";
       document.querySelector("#modalOldPass").placeholder = L("oldPass");
       document.querySelector("#modalNewPass").placeholder = L("newPass");
       document.querySelector("#modalChangePass").textContent = L("change");
       document.querySelector("#modalClose").textContent = L("close");
+      adminListTitle.textContent = L("adminList");
+      document.querySelector("#adminListClose").textContent = L("close");
     }
 
     function setView(name, data, push = true) {
@@ -745,6 +882,21 @@
             <button class="star" data-fav="${song.id}" aria-label="Favori">${fav.includes(song.id) ? "★" : "☆"}</button>
           </div>
           <p>${escapeHtml(song.artist)}</p>
+        </article>
+      `).join("");
+    }
+
+    function adminSongCards() {
+      const songs = sortedSongs();
+      if (!songs.length) return `<div class="note">${escapeHtml(L("noSongs"))}</div>`;
+      return songs.map(song => `
+        <article class="card">
+          <h3>${escapeHtml(song.title)}</h3>
+          <p>${escapeHtml(song.artist)}</p>
+          <div class="admin-card-actions">
+            <button class="btn small secondary" data-edit="${song.id}" title="${escapeAttr(L("edit"))}">✎</button>
+            <button class="btn small danger" data-delete="${song.id}" title="${escapeAttr(L("delete"))}">🗑</button>
+          </div>
         </article>
       `).join("");
     }
@@ -816,49 +968,109 @@
       page(L("lyrics"), `
         <div class="title-row"><h2>${escapeHtml(song.title)}</h2></div>
         <p class="note"><strong>${escapeHtml(song.artist)}</strong></p>
-        <div class="actions"><button class="btn small" id="fav">${isFav ? escapeHtml(L("removeFav")) : escapeHtml(L("addFav"))}</button></div>
-        <div class="lyrics">${escapeHtml(song.lyrics)}</div>
+        <div class="actions">
+          <button class="btn small" id="fav">${isFav ? escapeHtml(L("removeFav")) : escapeHtml(L("addFav"))}</button>
+          <div class="align-controls">
+            <button class="align-btn" data-align="left" title="${escapeAttr(L("alignLeft"))}">≡</button>
+            <button class="align-btn" data-align="center" title="${escapeAttr(L("alignCenter"))}">≡</button>
+            <button class="align-btn" data-align="right" title="${escapeAttr(L("alignRight"))}">≡</button>
+          </div>
+        </div>
+        <div class="lyrics" id="lyricsBox">${escapeHtml(song.lyrics)}</div>
       `);
       app.className = "detail-screen";
       applyLyricsSize();
+      applyLyricsAlign();
       zoomOut.classList.add("show");
       zoomIn.classList.add("show");
       document.querySelector("#fav").addEventListener("click", () => {
         toggleFavorite(song.id);
         setView("detail", song, false);
       });
+      document.querySelectorAll("[data-align]").forEach(button => {
+        button.addEventListener("click", () => {
+          lyricsAlign = button.dataset.align;
+          localStorage.setItem("victory_voice_lyrics_align", lyricsAlign);
+          applyLyricsAlign();
+        });
+      });
     }
 
     function admin() {
       if (!adminUnlocked) return adminLogin();
+      const editing = editingSongId ? store.songs.find(song => song.id === editingSongId) : null;
       page(L("admin"), `
         <form class="form" id="adminForm">
-          <input class="search" id="songTitle" placeholder="${escapeAttr(L("songTitlePlaceholder"))}" required>
-          <input class="search" id="artist" placeholder="${escapeAttr(L("artistPlaceholder"))}" required>
-          <textarea class="search" id="lyrics" placeholder="${escapeAttr(L("lyricsPlaceholder"))}" required></textarea>
+          <input class="search" id="songTitle" placeholder="${escapeAttr(L("songTitlePlaceholder"))}" value="${escapeAttr(editing?.title || "")}" required>
+          <input class="search" id="artist" placeholder="${escapeAttr(L("artistPlaceholder"))}" value="${escapeAttr(editing?.artist || "")}" required>
+          <textarea class="search" id="lyrics" placeholder="${escapeAttr(L("lyricsPlaceholder"))}" required>${escapeHtml(editing?.lyrics || "")}</textarea>
           <div class="actions">
-            <button class="btn small">${escapeHtml(L("save"))}</button>
+            <button class="btn small">${escapeHtml(editing ? L("update") : L("save"))}</button>
+            ${editing ? `<button class="btn small secondary" type="button" id="cancelEdit">${escapeHtml(L("cancel"))}</button>` : ""}
             <button class="btn small secondary" type="button" id="lockAdmin">${escapeHtml(L("lock"))}</button>
           </div>
         </form>
+        <button class="btn small secondary" id="openAdminList">${escapeHtml(L("adminList"))}</button>
       `);
       document.querySelector("#adminForm").addEventListener("submit", event => {
         event.preventDefault();
         const songs = store.songs;
-        songs.unshift({
-          id: Date.now(),
+        const next = {
+          id: editingSongId || Date.now(),
           title: document.querySelector("#songTitle").value.trim(),
           artist: document.querySelector("#artist").value.trim(),
           lyrics: document.querySelector("#lyrics").value.trim()
-        });
+        };
+        const index = songs.findIndex(song => song.id === editingSongId);
+        if (index >= 0) songs[index] = next;
+        else songs.unshift(next);
         store.songs = songs;
+        editingSongId = null;
         showToast(L("songAdded"));
-        home();
+        admin();
+      });
+      document.querySelector("#cancelEdit")?.addEventListener("click", () => {
+        editingSongId = null;
+        admin();
       });
       document.querySelector("#lockAdmin").addEventListener("click", () => {
         adminUnlocked = false;
+        editingSongId = null;
         home();
       });
+      document.querySelector("#openAdminList").addEventListener("click", openAdminListModal);
+    }
+
+    function bindAdminListActions() {
+      adminListBody.querySelectorAll("[data-edit]").forEach(button => {
+        button.addEventListener("click", () => {
+          editingSongId = Number(button.dataset.edit);
+          closeAdminListModal();
+          admin();
+        });
+      });
+      adminListBody.querySelectorAll("[data-delete]").forEach(button => {
+        button.addEventListener("click", () => {
+          if (!confirm(L("deleteConfirm"))) return;
+          const id = Number(button.dataset.delete);
+          store.songs = store.songs.filter(song => song.id !== id);
+          store.favorites = store.favorites.filter(songId => songId !== id);
+          if (editingSongId === id) editingSongId = null;
+          adminListBody.innerHTML = adminSongCards();
+          bindAdminListActions();
+        });
+      });
+    }
+
+    function openAdminListModal() {
+      adminListBody.innerHTML = adminSongCards();
+      bindAdminListActions();
+      updateStaticText();
+      adminListModal.classList.add("open");
+    }
+
+    function closeAdminListModal() {
+      adminListModal.classList.remove("open");
     }
 
     function adminLogin() {
@@ -911,7 +1123,8 @@
     }
 
     function about() {
-      page(L("about"), `<div class="note">${escapeHtml(L("aboutText"))}</div>`);
+      const [version, copyright] = L("aboutText").split("\\n");
+      page(L("about"), `<div class="note about-note"><div>${escapeHtml(version)}</div><div>${escapeHtml(copyright)}</div></div>`);
     }
 
     function toggleFavorite(id) {
@@ -972,6 +1185,20 @@
       localStorage.setItem("tononkira_lyrics_size", String(lyricsSize));
     }
 
+    function applyLyricsAlign() {
+      const box = document.querySelector("#lyricsBox");
+      if (box) box.style.textAlign = lyricsAlign;
+      document.querySelectorAll("[data-align]").forEach(button => {
+        button.classList.toggle("active", button.dataset.align === lyricsAlign);
+      });
+    }
+
+    function applyTheme() {
+      const dark = localStorage.getItem("victory_voice_theme") === "dark";
+      document.body.classList.toggle("dark", dark);
+      updateStaticText();
+    }
+
     function escapeHtml(value) {
       return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
     }
@@ -982,10 +1209,19 @@
 
     document.querySelector("#menuBtn").addEventListener("click", () => drawer.classList.add("open"));
     document.querySelector("#topSearch").addEventListener("click", () => setView("search"));
+    document.querySelector("#themeToggle").addEventListener("click", () => {
+      const next = document.body.classList.contains("dark") ? "light" : "dark";
+      localStorage.setItem("victory_voice_theme", next);
+      applyTheme();
+    });
     document.querySelector("#modalClose").addEventListener("click", closePasswordModal);
     document.querySelector("#modalChangePass").addEventListener("click", changePasswordFromModal);
+    document.querySelector("#adminListClose").addEventListener("click", closeAdminListModal);
     passwordModal.addEventListener("click", event => {
       if (event.target === passwordModal) closePasswordModal();
+    });
+    adminListModal.addEventListener("click", event => {
+      if (event.target === adminListModal) closeAdminListModal();
     });
     zoomOut.addEventListener("click", () => {
       lyricsSize = Math.max(14, lyricsSize - 2);
@@ -1010,6 +1246,7 @@
 
     history.replaceState({ name: "home", data: null }, "", "#home");
     applyLyricsSize();
+    applyTheme();
     home();
   </script>
 </body>

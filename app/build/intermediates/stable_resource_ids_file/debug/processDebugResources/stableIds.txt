@@ -1,3 +1,4 @@
+com.jassara.tononkira:drawable/victory_voice_logo = 0x7f020001
 com.jassara.tononkira:drawable/ic_launcher_foreground = 0x7f020000
 com.jassara.tononkira:string/app_name = 0x7f030000
 com.jassara.tononkira:color/white = 0x7f010003

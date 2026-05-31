@@ -5,5 +5,6 @@ color cyan
 color navy
 color white
 drawable ic_launcher_foreground
+drawable victory_voice_logo
 string app_name
 style AppTheme
