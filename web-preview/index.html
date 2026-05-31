@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tononkira - Test navigateur</title>
+  <style>
+    :root {
+      --navy: #020b24;
+      --navy-2: #071841;
+      --blue: #1d6dff;
+      --cyan: #54d9ff;
+      --surface: #f7faff;
+      --text: #1f2937;
+      --muted: #64748b;
+      --line: #b7d3ff;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 82% 18%, rgba(84, 217, 255, .22), transparent 22rem),
+        linear-gradient(135deg, #edf6ff, #f8fbff 44%, #e7f1ff);
+    }
+
+    .phone-shell {
+      width: min(430px, 100%);
+      min-height: 100vh;
+      margin: 0 auto;
+      background: var(--surface);
+      box-shadow: 0 0 50px rgba(2, 11, 36, .24);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .topbar {
+      height: 82px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 18px;
+      color: white;
+      background: linear-gradient(135deg, var(--navy), var(--navy-2));
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      overflow: hidden;
+    }
+
+    .topbar::before,
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -20% -15%;
+      background:
+        radial-gradient(circle, rgba(84, 217, 255, .9) 0 2px, transparent 3px) 24px 30px / 70px 56px,
+        linear-gradient(130deg, transparent 18%, rgba(29, 109, 255, .35) 38%, rgba(84, 217, 255, .52) 46%, transparent 62%);
+      opacity: .62;
+      transform: rotate(-8deg);
+    }
+
+    .menu-btn,
+    .icon-btn {
+      border: 0;
+      border-radius: 16px;
+      color: white;
+      background: rgba(255, 255, 255, .1);
+      width: 48px;
+      height: 48px;
+      font-size: 26px;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+
+    main {
+      padding: 18px 16px 30px;
+    }
+
+    main.detail-screen {
+      min-height: calc(100vh - 82px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero {
+      min-height: 132px;
+      border-radius: 22px;
+      padding: 24px;
+      color: white;
+      background: linear-gradient(135deg, var(--navy), #04225b);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 18px 38px rgba(2, 11, 36, .22);
+      margin-bottom: 24px;
+    }
+
+    .hero.clean {
+      min-height: 132px;
+      margin-bottom: 16px;
+    }
+
+    .hero h2,
+    .hero p {
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero h2 {
+      margin: 0;
+      font-size: 34px;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      margin: 12px 0 0;
+      color: #cfe7ff;
+      line-height: 1.5;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 6px 0 14px;
+    }
+
+    .title-row h2 {
+      margin: 0;
+      flex: 1;
+      color: var(--navy);
+      font-size: 24px;
+    }
+
+    .search {
+      width: 100%;
+      height: 56px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 0 16px;
+      margin-bottom: 16px;
+      color: var(--text);
+      background: white;
+      font: inherit;
+      outline: 0;
+    }
+
+    .search:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(29, 109, 255, .12);
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      background: white;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .06);
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card h3 {
+      margin: 0;
+      flex: 1;
+      font-size: 21px;
+    }
+
+    .card p {
+      margin: 8px 0 0;
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    .star {
+      border: 0;
+      background: transparent;
+      color: var(--blue);
+      font-size: 25px;
+      cursor: pointer;
+    }
+
+    .drawer {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: none;
+      background: rgba(0, 0, 0, .46);
+    }
+
+    .drawer.open { display: block; }
+
+    .drawer-panel {
+      width: min(340px, 84vw);
+      height: 100%;
+      background: white;
+      border-radius: 0 28px 28px 0;
+      overflow: hidden;
+      box-shadow: 18px 0 42px rgba(0, 0, 0, .22);
+    }
+
+    .drawer-header {
+      min-height: 168px;
+      padding: 32px 28px;
+      color: white;
+      background: linear-gradient(135deg, var(--navy), #04225b);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .drawer-header::before {
+      content: "";
+      position: absolute;
+      inset: -20%;
+      background: linear-gradient(130deg, transparent 14%, rgba(84, 217, 255, .44) 42%, transparent 64%);
+      transform: rotate(-11deg);
+    }
+
+    .drawer-header h2,
+    .drawer-header p { position: relative; margin: 0; }
+
+    .drawer-header h2 { font-size: 34px; }
+
+    .drawer-header p {
+      color: #cfe7ff;
+      font-weight: 800;
+      margin-top: 8px;
+    }
+
+    .nav-item {
+      width: 100%;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border: 0;
+      padding: 0 28px;
+      color: var(--text);
+      background: white;
+      font: inherit;
+      font-weight: 800;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .nav-item span {
+      width: 34px;
+      color: var(--blue);
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 16px 0;
+    }
+
+    .btn {
+      min-height: 52px;
+      border: 1px solid var(--blue);
+      border-radius: 18px;
+      padding: 0 18px;
+      color: white;
+      background: var(--blue);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .btn.small {
+      min-height: 38px;
+      width: auto;
+      border-radius: 14px;
+      padding: 0 14px;
+      font-size: 14px;
+    }
+
+    .btn.secondary {
+      color: var(--blue);
+      background: white;
+    }
+
+    .form {
+      display: grid;
+      gap: 14px;
+    }
+
+    textarea.search {
+      height: min(46vh, 380px);
+      padding-top: 16px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .note,
+    .lyrics {
+      border: 1px solid #dce8ff;
+      border-radius: 18px;
+      padding: 18px;
+      color: var(--muted);
+      background: white;
+      line-height: 1.55;
+    }
+
+    .lyrics {
+      color: var(--text);
+      flex: 1;
+      min-height: 54vh;
+      font-size: var(--lyrics-size, 19px);
+      white-space: pre-wrap;
+    }
+
+    .setting-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 1px solid #dce8ff;
+      border-radius: 18px;
+      padding: 16px;
+      background: white;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, .05);
+    }
+
+    .setting-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      color: var(--blue);
+      background: #eaf2ff;
+      font-weight: 900;
+    }
+
+    .setting-text {
+      flex: 1;
+    }
+
+    .setting-text h3 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .setting-text p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .segmented {
+      display: flex;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 3px;
+      background: #f3f7ff;
+    }
+
+    .segmented button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--muted);
+      background: transparent;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .segmented button.active {
+      color: white;
+      background: var(--blue);
+    }
+
+    .zoom-control {
+      position: fixed;
+      bottom: 18px;
+      z-index: 70;
+      width: 52px;
+      height: 52px;
+      border: 0;
+      border-radius: 999px;
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 12px 30px rgba(29, 109, 255, .35);
+      font-size: 26px;
+      font-weight: 900;
+      cursor: pointer;
+      display: none;
+    }
+
+    .zoom-control.show { display: block; }
+
+    #zoomOut { left: max(16px, calc(50% - 199px)); }
+    #zoomIn { right: max(16px, calc(50% - 199px)); }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 22px;
+      transform: translateX(-50%);
+      min-width: 240px;
+      max-width: calc(100% - 32px);
+      border-radius: 999px;
+      padding: 13px 18px;
+      color: white;
+      background: rgba(2, 11, 36, .94);
+      text-align: center;
+      font-weight: 800;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+      z-index: 60;
+    }
+
+    .toast.show { opacity: 1; }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(2, 11, 36, .58);
+    }
+
+    .modal.open { display: grid; }
+
+    .modal-card {
+      width: min(390px, 100%);
+      border-radius: 22px;
+      padding: 20px;
+      background: white;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    }
+
+    .modal-card h2 {
+      margin: 0 0 14px;
+      color: var(--navy);
+      font-size: 22px;
+    }
+
+    @media (min-width: 900px) {
+      body {
+        display: grid;
+        place-items: center;
+        padding: 28px;
+      }
+
+      .phone-shell {
+        min-height: 840px;
+        max-height: 900px;
+        border-radius: 34px;
+      }
+
+      .drawer {
+        position: absolute;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-shell">
+    <header class="topbar">
+      <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+      <h1 id="pageTitle">Tononkira</h1>
+      <button class="icon-btn" id="topSearch" aria-label="Recherche">⌕</button>
+    </header>
+    <main id="app"></main>
+    <aside class="drawer" id="drawer">
+      <div class="drawer-panel">
+        <div class="drawer-header">
+          <h2>Tononkira</h2>
+          <p>serasera.org</p>
+        </div>
+        <button class="nav-item" data-view="home"><span>⌂</span><b data-i18n="home">Accueil</b></button>
+        <button class="nav-item" data-view="search"><span>⌕</span><b data-i18n="search">Recherche</b></button>
+        <button class="nav-item" data-view="artists"><span>♪</span><b data-i18n="artists">Chanteurs</b></button>
+        <button class="nav-item" data-view="favorites"><span>★</span><b data-i18n="favorites">Titres préférés</b></button>
+        <button class="nav-item" data-view="admin"><span>＋</span><b data-i18n="admin">Mode admin</b></button>
+        <button class="nav-item" data-view="settings"><span>⚙</span><b data-i18n="settings">Paramètres</b></button>
+        <button class="nav-item" data-view="about"><span>i</span><b data-i18n="about">A propos</b></button>
+      </div>
+    </aside>
+  </div>
+  <button class="zoom-control" id="zoomOut" aria-label="Diminuer les paroles">−</button>
+  <button class="zoom-control" id="zoomIn" aria-label="Agrandir les paroles">+</button>
+  <div class="modal" id="passwordModal">
+    <div class="modal-card">
+      <h2 data-i18n="adminSecurity">Sécurité admin</h2>
+      <div class="form">
+        <input class="search" id="modalOldPass" type="password" placeholder="Ancien mot de passe">
+        <input class="search" id="modalNewPass" type="password" placeholder="Nouveau mot de passe">
+        <div class="actions">
+          <button class="btn small" id="modalChangePass">Changer</button>
+          <button class="btn small secondary" id="modalClose">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const seedSongs = [
+      ["Hidera Anao", "Mahefa Nirina Rabemananjara", "Hidera Anao izahay, ry Tompo avo indrindra.\nNy fo sy feo rehetra no asandratray am-pifaliana.\n\nAoka ny hira hiakatra ho voninahitrao,\nary ny fiainanay ho fanompoana Anao."],
+      ["AmpiadaniKo", "Dadi Love", "AmpiadaniKo ny foko, omeo hazavana.\nRehefa maizina ny lalana dia Ianao no fanantenana."],
+      ["Manantena", "Sphynx", "Manantena Anao aho, tsy miova ny fitiavanao.\nNa sarotra aza ny andro, eo anilako Ianao."],
+      ["Anao aho", "Antoko Mpihira Akon'ny Paradisa Zandriny", "Anao aho, Tompo ô, raiso ny fiainako.\nAtaovy fitaovana hitondra ny fiadananao."],
+      ["Mila ho fefika", "KTLM Tsanta Fitoriana Ambohimena", "Mila ho fefika ny fanahiko, mila ny teninao.\nTahio ny dianay, tariho amin'ny fahamarinana."],
+      ["Mbola hotsaraina", "Vetson'ny Fanantenana Bemasoandro", "Mbola hotsaraina ny asa vita ety.\nKoa mifalia amin'ny tsara, mitandrema amin'ny fo."],
+      ["Ramaria", "Tarika TARY", "Ramaria, hira entinay mampahery.\nNy fanantenana tsy levona raha mitoetra ny finoana."]
+    ];
+
+    const i18n = {
+      fr: {
+        appTitle: "Tononkira",
+        home: "Accueil",
+        search: "Recherche",
+        artists: "Chanteurs",
+        favorites: "Titres préférés",
+        admin: "Mode admin",
+        settings: "Paramètres",
+        about: "A propos",
+        latestSongs: "Liste des chants",
+        searchPlaceholder: "Titre, chanteur ou parole",
+        allArtists: "Tous les chanteurs",
+        viewSongs: "Voir les chants",
+        artistSongs: "Chants de",
+        noArtist: "Aucun chanteur enregistré.",
+        favoriteTitles: "Titres préférés",
+        noFavorites: "Aucun favori pour le moment.",
+        noSongs: "Aucun chant trouvé.",
+        lyrics: "Paroles",
+        addFav: "☆ Favori",
+        removeFav: "★ Retirer",
+        adminLoginTitle: "Mode admin",
+        passPlaceholder: "Mot de passe admin",
+        enter: "Entrer",
+        wrongPass: "Mot de passe incorrect.",
+        songTitlePlaceholder: "Titre du chant",
+        artistPlaceholder: "Nom du chanteur",
+        lyricsPlaceholder: "Paroles",
+        save: "Enregistrer",
+        lock: "Verrouiller",
+        fillAll: "Remplissez le titre, le chanteur et les paroles.",
+        songAdded: "Chant ajouté avec succès.",
+        language: "Langue",
+        languageSub: "Choisissez la langue d'affichage.",
+        adminSecurity: "Sécurité admin",
+        adminSecuritySub: "Cliquez pour modifier le mot de passe du mode admin.",
+        oldPass: "Ancien mot de passe",
+        newPass: "Nouveau mot de passe",
+        change: "Changer",
+        close: "Fermer",
+        passChanged: "Mot de passe changé.",
+        oldWrong: "Ancien mot de passe incorrect.",
+        passShort: "Choisissez au moins 4 caractères.",
+        french: "Français",
+        english: "English",
+        languageFr: "Langue: français.",
+        languageEn: "Language: English.",
+        addedFav: "Ajouté aux favoris.",
+        removedFav: "Retiré des favoris.",
+        aboutText: "Version APK 1.0\nCopyright by Telina Randrenanja"
+      },
+      en: {
+        appTitle: "Tononkira",
+        home: "Home",
+        search: "Search",
+        artists: "Singers",
+        favorites: "Favorites",
+        admin: "Admin mode",
+        settings: "Settings",
+        about: "About",
+        latestSongs: "Song list",
+        searchPlaceholder: "Title, singer or lyrics",
+        allArtists: "All singers",
+        viewSongs: "View songs",
+        artistSongs: "Songs by",
+        noArtist: "No singer saved.",
+        favoriteTitles: "Favorite titles",
+        noFavorites: "No favorite yet.",
+        noSongs: "No song found.",
+        lyrics: "Lyrics",
+        addFav: "☆ Favorite",
+        removeFav: "★ Remove",
+        adminLoginTitle: "Admin mode",
+        passPlaceholder: "Admin password",
+        enter: "Enter",
+        wrongPass: "Wrong password.",
+        songTitlePlaceholder: "Song title",
+        artistPlaceholder: "Singer name",
+        lyricsPlaceholder: "Lyrics",
+        save: "Save",
+        lock: "Lock",
+        fillAll: "Fill in the title, singer and lyrics.",
+        songAdded: "Song saved.",
+        language: "Language",
+        languageSub: "Choose the display language.",
+        adminSecurity: "Admin security",
+        adminSecuritySub: "Click to change the admin password.",
+        oldPass: "Old password",
+        newPass: "New password",
+        change: "Change",
+        close: "Close",
+        passChanged: "Password changed.",
+        oldWrong: "Old password is wrong.",
+        passShort: "Use at least 4 characters.",
+        french: "Français",
+        english: "English",
+        languageFr: "Langue: français.",
+        languageEn: "Language: English.",
+        addedFav: "Added to favorites.",
+        removedFav: "Removed from favorites.",
+        aboutText: "APK version 1.0\nCopyright by Telina Randrenanja"
+      }
+    };
+
+    const store = {
+      get songs() {
+        const saved = localStorage.getItem("tononkira_songs");
+        if (saved) return JSON.parse(saved);
+        const songs = seedSongs.map((song, index) => ({
+          id: Date.now() + index,
+          title: song[0],
+          artist: song[1],
+          lyrics: song[2]
+        }));
+        localStorage.setItem("tononkira_songs", JSON.stringify(songs));
+        return songs;
+      },
+      set songs(value) {
+        localStorage.setItem("tononkira_songs", JSON.stringify(value));
+      },
+      get favorites() {
+        return JSON.parse(localStorage.getItem("tononkira_favorites") || "[]");
+      },
+      set favorites(value) {
+        localStorage.setItem("tononkira_favorites", JSON.stringify(value));
+      },
+      get password() {
+        return localStorage.getItem("tononkira_admin_password") || "1234";
+      },
+      set password(value) {
+        localStorage.setItem("tononkira_admin_password", value);
+      }
+    };
+
+    const app = document.querySelector("#app");
+    const title = document.querySelector("#pageTitle");
+    const drawer = document.querySelector("#drawer");
+    const toast = document.querySelector("#toast");
+    const zoomOut = document.querySelector("#zoomOut");
+    const zoomIn = document.querySelector("#zoomIn");
+    const passwordModal = document.querySelector("#passwordModal");
+    let adminUnlocked = false;
+    let currentRoute = { name: "home", data: null };
+    let lyricsSize = Number(localStorage.getItem("tononkira_lyrics_size") || 19);
+
+    function lang() {
+      return localStorage.getItem("tononkira_language") || "fr";
+    }
+
+    function L(key) {
+      return i18n[lang()][key] || i18n.fr[key] || key;
+    }
+
+    function sortedSongs(songs = store.songs) {
+      return [...songs].sort((a, b) => a.title.localeCompare(b.title, lang(), { sensitivity: "base" }));
+    }
+
+    function updateStaticText() {
+      document.querySelectorAll("[data-i18n]").forEach(node => {
+        node.textContent = L(node.dataset.i18n);
+      });
+      document.querySelector("#topSearch").setAttribute("aria-label", L("search"));
+      document.querySelector("#modalOldPass").placeholder = L("oldPass");
+      document.querySelector("#modalNewPass").placeholder = L("newPass");
+      document.querySelector("#modalChangePass").textContent = L("change");
+      document.querySelector("#modalClose").textContent = L("close");
+    }
+
+    function setView(name, data, push = true) {
+      drawer.classList.remove("open");
+      currentRoute = { name, data };
+      if (push) {
+        history.pushState({ name, data }, "", "#" + name);
+      }
+      const views = { home, search, artists, favorites, admin, settings, about, detail, artistSongs };
+      views[name](data);
+    }
+
+    function page(name, html) {
+      title.textContent = name;
+      app.innerHTML = html;
+      app.className = "";
+      zoomOut.classList.remove("show");
+      zoomIn.classList.remove("show");
+      updateStaticText();
+    }
+
+    function hero(head = "", body = "") {
+      const clean = !head && !body;
+      return `<section class="hero${clean ? " clean" : ""}">${clean ? "" : `<h2>${escapeHtml(head)}</h2><p>${escapeHtml(body)}</p>`}</section>`;
+    }
+
+    function section(text) {
+      return `<div class="title-row"><h2>${escapeHtml(text)}</h2></div>`;
+    }
+
+    function songCards(songs) {
+      if (!songs.length) return `<div class="note">${escapeHtml(L("noSongs"))}</div>`;
+      const fav = store.favorites;
+      return songs.map(song => `
+        <article class="card" data-song="${song.id}">
+          <div class="card-head">
+            <h3>${escapeHtml(song.title)}</h3>
+            <button class="star" data-fav="${song.id}" aria-label="Favori">${fav.includes(song.id) ? "★" : "☆"}</button>
+          </div>
+          <p>${escapeHtml(song.artist)}</p>
+        </article>
+      `).join("");
+    }
+
+    function bindSongCards() {
+      document.querySelectorAll("[data-song]").forEach(card => {
+        card.addEventListener("click", event => {
+          if (event.target.closest("[data-fav]")) return;
+          const song = store.songs.find(item => item.id === Number(card.dataset.song));
+          setView("detail", song);
+        });
+      });
+      document.querySelectorAll("[data-fav]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          toggleFavorite(Number(button.dataset.fav));
+        });
+      });
+    }
+
+    function home() {
+      page(L("appTitle"), `${section(L("latestSongs"))}<div id="list">${songCards(sortedSongs())}</div>`);
+      bindSongCards();
+    }
+
+    function search(initial = "") {
+      page(L("search"), `<input class="search" id="q" placeholder="${escapeAttr(L("searchPlaceholder"))}" value="${escapeAttr(initial)}"><div id="list"></div>`);
+      const q = document.querySelector("#q");
+      const list = document.querySelector("#list");
+      const render = () => {
+        const term = q.value.trim().toLowerCase();
+        const songs = !term ? sortedSongs() : sortedSongs(store.songs.filter(song =>
+          `${song.title} ${song.artist} ${song.lyrics}`.toLowerCase().includes(term)
+        ));
+        list.innerHTML = songCards(songs);
+        bindSongCards();
+      };
+      q.addEventListener("input", render);
+      render();
+    }
+
+    function artists() {
+      const counts = store.songs.reduce((map, song) => {
+        map[song.artist] = (map[song.artist] || 0) + 1;
+        return map;
+      }, {});
+      page(L("artists"), `${section(L("allArtists"))}${Object.entries(counts).sort(([a], [b]) => a.localeCompare(b, lang(), { sensitivity: "base" })).map(([artist, count]) => `
+        <article class="card" data-artist="${escapeAttr(artist)}"><h3>${escapeHtml(artist)} (${count})</h3><p>${escapeHtml(L("viewSongs"))}</p></article>
+      `).join("") || `<div class="note">${escapeHtml(L("noArtist"))}</div>`}`);
+      document.querySelectorAll("[data-artist]").forEach(card => {
+        card.addEventListener("click", () => setView("artistSongs", card.dataset.artist));
+      });
+    }
+
+    function artistSongs(artist) {
+      page(artist, `${section(L("artistSongs") + " " + artist)}<div id="list">${songCards(sortedSongs(store.songs.filter(song => song.artist === artist)))}</div>`);
+      bindSongCards();
+    }
+
+    function favorites() {
+      const favoriteIds = store.favorites;
+      const songs = sortedSongs(store.songs.filter(song => favoriteIds.includes(song.id)));
+      page(L("favorites"), `${section(L("favoriteTitles"))}<div id="list">${songs.length ? songCards(songs) : `<div class="note">${escapeHtml(L("noFavorites"))}</div>`}</div>`);
+      bindSongCards();
+    }
+
+    function detail(song) {
+      const isFav = store.favorites.includes(song.id);
+      page(L("lyrics"), `
+        <div class="title-row"><h2>${escapeHtml(song.title)}</h2></div>
+        <p class="note"><strong>${escapeHtml(song.artist)}</strong></p>
+        <div class="actions"><button class="btn small" id="fav">${isFav ? escapeHtml(L("removeFav")) : escapeHtml(L("addFav"))}</button></div>
+        <div class="lyrics">${escapeHtml(song.lyrics)}</div>
+      `);
+      app.className = "detail-screen";
+      applyLyricsSize();
+      zoomOut.classList.add("show");
+      zoomIn.classList.add("show");
+      document.querySelector("#fav").addEventListener("click", () => {
+        toggleFavorite(song.id);
+        setView("detail", song, false);
+      });
+    }
+
+    function admin() {
+      if (!adminUnlocked) return adminLogin();
+      page(L("admin"), `
+        <form class="form" id="adminForm">
+          <input class="search" id="songTitle" placeholder="${escapeAttr(L("songTitlePlaceholder"))}" required>
+          <input class="search" id="artist" placeholder="${escapeAttr(L("artistPlaceholder"))}" required>
+          <textarea class="search" id="lyrics" placeholder="${escapeAttr(L("lyricsPlaceholder"))}" required></textarea>
+          <div class="actions">
+            <button class="btn small">${escapeHtml(L("save"))}</button>
+            <button class="btn small secondary" type="button" id="lockAdmin">${escapeHtml(L("lock"))}</button>
+          </div>
+        </form>
+      `);
+      document.querySelector("#adminForm").addEventListener("submit", event => {
+        event.preventDefault();
+        const songs = store.songs;
+        songs.unshift({
+          id: Date.now(),
+          title: document.querySelector("#songTitle").value.trim(),
+          artist: document.querySelector("#artist").value.trim(),
+          lyrics: document.querySelector("#lyrics").value.trim()
+        });
+        store.songs = songs;
+        showToast(L("songAdded"));
+        home();
+      });
+      document.querySelector("#lockAdmin").addEventListener("click", () => {
+        adminUnlocked = false;
+        home();
+      });
+    }
+
+    function adminLogin() {
+      page(L("admin"), `
+        <div class="form">
+          <input class="search" id="pass" type="password" placeholder="${escapeAttr(L("passPlaceholder"))}">
+          <button class="btn small" id="enterAdmin">${escapeHtml(L("enter"))}</button>
+        </div>
+      `);
+      document.querySelector("#enterAdmin").addEventListener("click", () => {
+        if (document.querySelector("#pass").value === store.password) {
+          adminUnlocked = true;
+          admin();
+        } else {
+          showToast(L("wrongPass"));
+        }
+      });
+    }
+
+    function settings() {
+      page(L("settings"), `
+        ${section(L("settings"))}
+        <div class="setting-list">
+          <div class="setting-row">
+            <div class="setting-icon">Aa</div>
+            <div class="setting-text">
+              <h3>${escapeHtml(L("language"))}</h3>
+              <p>${escapeHtml(L("languageSub"))}</p>
+            </div>
+            <div class="segmented">
+              <button id="langFr">FR</button>
+              <button id="langEn">EN</button>
+            </div>
+          </div>
+          <button class="setting-row" id="securityAdmin" type="button">
+            <div class="setting-icon">🔒</div>
+            <div class="setting-text">
+              <h3>${escapeHtml(L("adminSecurity"))}</h3>
+              <p>${escapeHtml(L("adminSecuritySub"))}</p>
+            </div>
+          </button>
+        </div>
+      `);
+      const language = localStorage.getItem("tononkira_language") || "fr";
+      document.querySelector("#langFr").classList.toggle("active", language === "fr");
+      document.querySelector("#langEn").classList.toggle("active", language === "en");
+      document.querySelector("#langFr").addEventListener("click", () => setLanguage("fr"));
+      document.querySelector("#langEn").addEventListener("click", () => setLanguage("en"));
+      document.querySelector("#securityAdmin").addEventListener("click", openPasswordModal);
+    }
+
+    function about() {
+      page(L("about"), `<div class="note">${escapeHtml(L("aboutText"))}</div>`);
+    }
+
+    function toggleFavorite(id) {
+      const fav = store.favorites;
+      store.favorites = fav.includes(id) ? fav.filter(item => item !== id) : [...fav, id];
+      showToast(store.favorites.includes(id) ? L("addedFav") : L("removedFav"));
+      if (document.querySelector("#list")) {
+        document.querySelector("#list").innerHTML = songCards(currentVisibleSongs());
+        bindSongCards();
+      }
+    }
+
+    function currentVisibleSongs() {
+      const q = document.querySelector("#q");
+      if (!q) return sortedSongs();
+      const term = q.value.trim().toLowerCase();
+      return !term ? sortedSongs() : sortedSongs(store.songs.filter(song => `${song.title} ${song.artist} ${song.lyrics}`.toLowerCase().includes(term)));
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(showToast.timeout);
+      showToast.timeout = setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function openPasswordModal() {
+      document.querySelector("#modalOldPass").value = "";
+      document.querySelector("#modalNewPass").value = "";
+      updateStaticText();
+      passwordModal.classList.add("open");
+    }
+
+    function closePasswordModal() {
+      passwordModal.classList.remove("open");
+    }
+
+    function changePasswordFromModal() {
+      const oldPass = document.querySelector("#modalOldPass").value;
+      const newPass = document.querySelector("#modalNewPass").value;
+      if (oldPass !== store.password) return showToast(L("oldWrong"));
+      if (newPass.trim().length < 4) return showToast(L("passShort"));
+      store.password = newPass;
+      adminUnlocked = false;
+      closePasswordModal();
+      showToast(L("passChanged"));
+    }
+
+    function setLanguage(language) {
+      localStorage.setItem("tononkira_language", language);
+      updateStaticText();
+      showToast(language === "fr" ? L("languageFr") : L("languageEn"));
+      setView(currentRoute.name, currentRoute.data, false);
+    }
+
+    function applyLyricsSize() {
+      document.documentElement.style.setProperty("--lyrics-size", lyricsSize + "px");
+      localStorage.setItem("tononkira_lyrics_size", String(lyricsSize));
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/"/g, "&quot;");
+    }
+
+    document.querySelector("#menuBtn").addEventListener("click", () => drawer.classList.add("open"));
+    document.querySelector("#topSearch").addEventListener("click", () => setView("search"));
+    document.querySelector("#modalClose").addEventListener("click", closePasswordModal);
+    document.querySelector("#modalChangePass").addEventListener("click", changePasswordFromModal);
+    passwordModal.addEventListener("click", event => {
+      if (event.target === passwordModal) closePasswordModal();
+    });
+    zoomOut.addEventListener("click", () => {
+      lyricsSize = Math.max(14, lyricsSize - 2);
+      applyLyricsSize();
+    });
+    zoomIn.addEventListener("click", () => {
+      lyricsSize = Math.min(34, lyricsSize + 2);
+      applyLyricsSize();
+    });
+    drawer.addEventListener("click", event => {
+      if (event.target === drawer) drawer.classList.remove("open");
+    });
+    document.querySelectorAll("[data-view]").forEach(button => {
+      button.addEventListener("click", () => setView(button.dataset.view));
+    });
+
+    window.addEventListener("popstate", event => {
+      const state = event.state || { name: "home", data: null };
+      currentRoute = state;
+      setView(state.name, state.data, false);
+    });
+
+    history.replaceState({ name: "home", data: null }, "", "#home");
+    applyLyricsSize();
+    home();
+  </script>
+</body>
+</html>

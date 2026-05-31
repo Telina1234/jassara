@@ -1,6 +1,7 @@
 package com.jassara.tononkira;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -73,6 +74,15 @@ public class MainActivity extends Activity {
         showHome();
     }
 
+    @Override
+    public void onBackPressed() {
+        if (toolbarTitle != null && !"Tononkira".contentEquals(toolbarTitle.getText())) {
+            showHome();
+            return;
+        }
+        super.onBackPressed();
+    }
+
     private View createToolbar() {
         FrameLayout toolbar = new FrameLayout(this);
         toolbar.setBackgroundColor(NAVY);
@@ -84,12 +94,18 @@ public class MainActivity extends Activity {
         toolbar.addView(menu, menuParams);
         menu.setOnClickListener(v -> openDrawer());
 
-        toolbarTitle = label("Tononkira", 24, Color.WHITE, Typeface.NORMAL);
+        toolbarTitle = label(tr("app"), 24, Color.WHITE, Typeface.NORMAL);
         toolbarTitle.setGravity(Gravity.CENTER_VERTICAL);
         FrameLayout.LayoutParams titleParams = new FrameLayout.LayoutParams(matchWidth(), matchHeight());
         titleParams.leftMargin = dp(72);
-        titleParams.rightMargin = dp(16);
+        titleParams.rightMargin = dp(76);
         toolbar.addView(toolbarTitle, titleParams);
+
+        TextView search = toolbarButton("⌕", 28);
+        FrameLayout.LayoutParams searchParams = new FrameLayout.LayoutParams(dp(58), matchHeight());
+        searchParams.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+        toolbar.addView(search, searchParams);
+        search.setOnClickListener(v -> showSearch(""));
         return toolbar;
     }
 
@@ -118,20 +134,20 @@ public class MainActivity extends Activity {
         headerText.setOrientation(LinearLayout.VERTICAL);
         headerText.setGravity(Gravity.CENTER_VERTICAL);
         headerText.setPadding(dp(28), dp(12), dp(18), dp(12));
-        headerText.addView(label("Tononkira", 34, Color.WHITE, Typeface.BOLD));
+        headerText.addView(label(tr("app"), 34, Color.WHITE, Typeface.BOLD));
         TextView site = label("serasera.org", 18, Color.rgb(204, 233, 255), Typeface.BOLD);
         site.setPadding(0, dp(6), 0, 0);
         headerText.addView(site);
         header.addView(headerText, match());
         drawer.addView(header, new LinearLayout.LayoutParams(matchWidth(), dp(168)));
 
-        addDrawerItem(drawer, "⌂", "Accueil", () -> showHome());
-        addDrawerItem(drawer, "⌕", "Recherche", () -> showSearch(""));
-        addDrawerItem(drawer, "♪", "Chanteurs", () -> showArtists());
-        addDrawerItem(drawer, "★", "Titres préférés", () -> showFavorites());
-        addDrawerItem(drawer, "＋", "Mode admin", () -> showAdmin());
-        addDrawerItem(drawer, "⚙", "Paramètres", () -> showSettings());
-        addDrawerItem(drawer, "i", "A propos", () -> showAbout());
+        addDrawerItem(drawer, "⌂", tr("home"), () -> showHome());
+        addDrawerItem(drawer, "⌕", tr("search"), () -> showSearch(""));
+        addDrawerItem(drawer, "♪", tr("artists"), () -> showArtists());
+        addDrawerItem(drawer, "★", tr("favorites"), () -> showFavorites());
+        addDrawerItem(drawer, "＋", tr("admin"), () -> showAdmin());
+        addDrawerItem(drawer, "⚙", tr("settings"), () -> showSettings());
+        addDrawerItem(drawer, "i", tr("about"), () -> showAbout());
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(314), matchHeight());
         params.gravity = Gravity.START;
@@ -163,20 +179,18 @@ public class MainActivity extends Activity {
     }
 
     private void showHome() {
-        setTitleText("Tononkira");
+        setTitleText(tr("app"));
         LinearLayout body = screen();
-        body.addView(hero("Tononkira", "Chants, paroles, favoris et ajout admin dans une seule APK simple."));
-        body.addView(sectionTitle("Derniers chants"));
+        body.addView(sectionTitle(tr("song_list")));
         addSongCards(body, database.allSongs(), false);
         render(body);
     }
 
     private void showSearch(String initialTerm) {
-        setTitleText("Recherche");
+        setTitleText(tr("search"));
         LinearLayout body = screen();
-        body.addView(sectionTitle("A rechercher"));
 
-        EditText search = input("Titre, chanteur ou parole");
+        EditText search = input(tr("search_hint"));
         search.setSingleLine(true);
         search.setText(initialTerm);
         body.addView(search, spaced(matchWidth(), dp(56), 0, 0, 0, dp(14)));
@@ -197,16 +211,16 @@ public class MainActivity extends Activity {
     }
 
     private void showArtists() {
-        setTitleText("Chanteurs");
+        setTitleText(tr("artists"));
         LinearLayout body = screen();
-        body.addView(sectionTitle("Tous les chanteurs"));
+        body.addView(sectionTitle(tr("all_artists")));
         List<String> artists = database.artists();
         if (artists.isEmpty()) {
-            body.addView(empty("Aucun chanteur enregistré."));
+            body.addView(empty(tr("no_artist")));
         } else {
             for (String artistLabel : artists) {
                 String artist = artistLabel.replaceFirst(" \\([0-9]+\\)$", "");
-                body.addView(actionCard(artistLabel, "Voir les chants", () -> showArtistSongs(artist)));
+                body.addView(actionCard(artistLabel, tr("view_songs"), () -> showArtistSongs(artist)));
             }
         }
         render(body);
@@ -215,18 +229,18 @@ public class MainActivity extends Activity {
     private void showArtistSongs(String artist) {
         setTitleText(artist);
         LinearLayout body = screen();
-        body.addView(sectionTitle("Chants de " + artist));
+        body.addView(sectionTitle(tr("songs_by") + " " + artist));
         addSongCards(body, database.songsByArtist(artist), false);
         render(body);
     }
 
     private void showFavorites() {
-        setTitleText("Favoris");
+        setTitleText(tr("favorites"));
         LinearLayout body = screen();
-        body.addView(sectionTitle("Titres préférés"));
+        body.addView(sectionTitle(tr("favorite_titles")));
         List<Song> songs = database.favorites();
         if (songs.isEmpty()) {
-            body.addView(empty("Aucun favori pour le moment. Ouvrez un chant et touchez le bouton favori."));
+            body.addView(empty(tr("no_favorite")));
         } else {
             addSongCards(body, songs, false);
         }
@@ -234,9 +248,8 @@ public class MainActivity extends Activity {
     }
 
     private void showSong(Song song) {
-        setTitleText("Paroles");
+        setTitleText(tr("lyrics"));
         LinearLayout body = screen();
-        body.addView(button("← Retour", v -> showSearch(song.title), false));
 
         TextView title = label(song.title, 30, NAVY, Typeface.BOLD);
         title.setPadding(0, dp(18), 0, 0);
@@ -246,123 +259,183 @@ public class MainActivity extends Activity {
         body.addView(artist);
 
         final boolean[] favorite = {database.isFavorite(song.id)};
-        Button favButton = button(favorite[0] ? "★ Retirer des favoris" : "☆ Ajouter aux favoris", null, true);
+        Button favButton = smallButton(favorite[0] ? tr("remove_fav") : tr("add_fav"), null, true);
         favButton.setOnClickListener(v -> {
             favorite[0] = !favorite[0];
             database.setFavorite(song.id, favorite[0]);
-            favButton.setText(favorite[0] ? "★ Retirer des favoris" : "☆ Ajouter aux favoris");
+            favButton.setText(favorite[0] ? tr("remove_fav") : tr("add_fav"));
         });
-        body.addView(favButton, spaced(matchWidth(), dp(52), 0, 0, 0, dp(18)));
+        body.addView(favButton, spaced(wrap(), dp(40), 0, 0, 0, dp(14)));
 
-        TextView lyrics = label(song.lyrics, 19, TEXT, Typeface.NORMAL);
+        int savedSize = preferences.getInt("lyrics_size", 19);
+        TextView lyrics = label(song.lyrics, savedSize, TEXT, Typeface.NORMAL);
         lyrics.setLineSpacing(dp(4), 1.08f);
         lyrics.setPadding(dp(20), dp(20), dp(20), dp(20));
         lyrics.setBackground(cardBackground(Color.WHITE, Color.rgb(210, 225, 255)));
-        body.addView(lyrics, spaced(matchWidth(), wrap(), 0, 0, 0, dp(28)));
+        body.addView(lyrics, spaced(matchWidth(), dp(430), 0, 0, 0, dp(16)));
+
+        LinearLayout zoom = new LinearLayout(this);
+        zoom.setOrientation(LinearLayout.HORIZONTAL);
+        zoom.setGravity(Gravity.CENTER_VERTICAL);
+        Button minus = smallButton("-", null, true);
+        Button plus = smallButton("+", null, true);
+        Space gap = new Space(this);
+        zoom.addView(minus, new LinearLayout.LayoutParams(dp(48), dp(42)));
+        zoom.addView(gap, new LinearLayout.LayoutParams(0, dp(42), 1));
+        zoom.addView(plus, new LinearLayout.LayoutParams(dp(48), dp(42)));
+        final int[] size = {savedSize};
+        minus.setOnClickListener(v -> {
+            size[0] = Math.max(14, size[0] - 2);
+            lyrics.setTextSize(size[0]);
+            preferences.edit().putInt("lyrics_size", size[0]).apply();
+        });
+        plus.setOnClickListener(v -> {
+            size[0] = Math.min(34, size[0] + 2);
+            lyrics.setTextSize(size[0]);
+            preferences.edit().putInt("lyrics_size", size[0]).apply();
+        });
+        body.addView(zoom, spaced(matchWidth(), dp(46), 0, 0, 0, dp(22)));
         render(body);
     }
 
     private void showAdmin() {
-        setTitleText("Mode admin");
+        setTitleText(tr("admin"));
         if (!adminUnlocked) {
             showAdminLogin();
             return;
         }
 
         LinearLayout body = screen();
-        body.addView(hero("Ajouter un chant", "Enregistrez un titre, un chanteur et les paroles. Les données restent dans SQLite sur le téléphone."));
-
-        EditText title = input("Titre du chant");
-        EditText artist = input("Nom du chanteur");
-        EditText lyrics = input("Paroles");
+        EditText title = input(tr("song_title"));
+        EditText artist = input(tr("artist_name"));
+        EditText lyrics = input(tr("lyrics"));
         lyrics.setMinLines(6);
         lyrics.setGravity(Gravity.TOP | Gravity.START);
         lyrics.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
 
         body.addView(title, spaced(matchWidth(), dp(56), 0, dp(14), 0, 0));
         body.addView(artist, spaced(matchWidth(), dp(56), 0, dp(14), 0, 0));
-        body.addView(lyrics, spaced(matchWidth(), dp(180), 0, dp(14), 0, 0));
-        body.addView(button("Enregistrer le chant", v -> {
+        body.addView(lyrics, spaced(matchWidth(), dp(320), 0, dp(14), 0, 0));
+        LinearLayout actions = new LinearLayout(this);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        actions.setGravity(Gravity.CENTER_VERTICAL);
+        Button save = smallButton(tr("save"), v -> {
             String t = title.getText().toString();
             String a = artist.getText().toString();
             String l = lyrics.getText().toString();
             if (t.trim().isEmpty() || a.trim().isEmpty() || l.trim().isEmpty()) {
-                toast("Remplissez le titre, le chanteur et les paroles.");
+                toast(tr("fill_all"));
                 return;
             }
             database.addSong(t, a, l);
             title.setText("");
             artist.setText("");
             lyrics.setText("");
-            toast("Chant ajouté avec succès.");
+            toast(tr("song_added"));
             showHome();
-        }, true), spaced(matchWidth(), dp(54), 0, dp(18), 0, dp(28)));
-
-        body.addView(button("Verrouiller le mode admin", v -> {
+        }, true);
+        Button lock = smallButton(tr("lock"), v -> {
             adminUnlocked = false;
             showHome();
-        }, false));
+        }, false);
+        actions.addView(save, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        Space actionGap = new Space(this);
+        actions.addView(actionGap, new LinearLayout.LayoutParams(dp(10), dp(40)));
+        actions.addView(lock, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        body.addView(actions, spaced(matchWidth(), dp(44), 0, dp(18), 0, dp(28)));
+
         render(body);
     }
 
     private void showAdminLogin() {
         LinearLayout body = screen();
-        body.addView(hero("Mode admin", "Connectez-vous pour ajouter de nouveaux chants dans la base locale."));
-        EditText password = input("Mot de passe admin");
+        EditText password = input(tr("admin_password"));
         password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         body.addView(password, spaced(matchWidth(), dp(56), 0, dp(18), 0, 0));
-        body.addView(button("Entrer", v -> {
+        body.addView(smallButton(tr("enter"), v -> {
             String expected = preferences.getString("admin_password", "1234");
             if (password.getText().toString().equals(expected)) {
                 adminUnlocked = true;
                 showAdmin();
             } else {
-                toast("Mot de passe incorrect.");
+                toast(tr("wrong_password"));
             }
-        }, true), spaced(matchWidth(), dp(54), 0, dp(16), 0, 0));
-        body.addView(note("Mot de passe par défaut: 1234. Vous pouvez le changer dans Paramètres."));
+        }, true), spaced(wrap(), dp(40), 0, dp(16), 0, 0));
         render(body);
     }
 
     private void showSettings() {
-        setTitleText("Paramètres");
+        setTitleText(tr("settings"));
         LinearLayout body = screen();
-        body.addView(sectionTitle("Sécurité admin"));
+        body.addView(sectionTitle(tr("settings")));
 
-        EditText oldPass = input("Ancien mot de passe");
-        oldPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        EditText newPass = input("Nouveau mot de passe");
-        newPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        body.addView(oldPass, spaced(matchWidth(), dp(56), 0, dp(12), 0, 0));
-        body.addView(newPass, spaced(matchWidth(), dp(56), 0, dp(12), 0, 0));
-        body.addView(button("Changer le mot de passe", v -> {
-            String expected = preferences.getString("admin_password", "1234");
-            if (!oldPass.getText().toString().equals(expected)) {
-                toast("Ancien mot de passe incorrect.");
-                return;
-            }
-            if (newPass.getText().toString().trim().length() < 4) {
-                toast("Choisissez au moins 4 caractères.");
-                return;
-            }
-            preferences.edit().putString("admin_password", newPass.getText().toString()).apply();
-            oldPass.setText("");
-            newPass.setText("");
-            adminUnlocked = false;
-            toast("Mot de passe admin changé.");
-        }, true), spaced(matchWidth(), dp(54), 0, dp(16), 0, dp(28)));
+        TextView languageTitle = label(tr("language"), 18, TEXT, Typeface.BOLD);
+        languageTitle.setPadding(0, dp(8), 0, dp(8));
+        body.addView(languageTitle);
+        LinearLayout languageRow = new LinearLayout(this);
+        languageRow.setOrientation(LinearLayout.HORIZONTAL);
+        Button french = smallButton("Français", v -> {
+            preferences.edit().putString("language", "fr").apply();
+            recreate();
+        }, true);
+        Button english = smallButton("English", v -> {
+            preferences.edit().putString("language", "en").apply();
+            recreate();
+        }, false);
+        languageRow.addView(french, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        Space langGap = new Space(this);
+        languageRow.addView(langGap, new LinearLayout.LayoutParams(dp(10), dp(40)));
+        languageRow.addView(english, new LinearLayout.LayoutParams(wrap(), dp(40)));
+        body.addView(languageRow, spaced(matchWidth(), dp(44), 0, 0, 0, dp(22)));
 
-        body.addView(sectionTitle("Base de données"));
-        body.addView(note("Les chants ajoutés, favoris et réglages sont stockés localement dans SQLite. L'APK fonctionne sans internet."));
+        TextView security = settingRow(tr("admin_security"), tr("admin_security_sub"));
+        security.setClickable(true);
+        security.setOnClickListener(v -> showPasswordDialog());
+        body.addView(security);
         render(body);
     }
 
     private void showAbout() {
-        setTitleText("A propos");
+        setTitleText(tr("about"));
         LinearLayout body = screen();
-        body.addView(hero("Tononkira", "Application APK de chants avec recherche rapide, favoris et mode admin."));
-        body.addView(note("Thème inspiré de l'image bleu nuit avec rubans lumineux. Version 1.0."));
+        body.addView(note(tr("about_text")));
         render(body);
+    }
+
+    private void showPasswordDialog() {
+        LinearLayout form = new LinearLayout(this);
+        form.setOrientation(LinearLayout.VERTICAL);
+        form.setPadding(dp(18), dp(8), dp(18), 0);
+
+        EditText oldPass = input(tr("old_password"));
+        oldPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        EditText newPass = input(tr("new_password"));
+        newPass.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        form.addView(oldPass, spaced(matchWidth(), dp(56), 0, dp(8), 0, 0));
+        form.addView(newPass, spaced(matchWidth(), dp(56), 0, dp(12), 0, 0));
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(tr("admin_security"))
+                .setView(form)
+                .setNegativeButton(tr("close"), null)
+                .setPositiveButton(tr("change"), null)
+                .create();
+        dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String expected = preferences.getString("admin_password", "1234");
+            if (!oldPass.getText().toString().equals(expected)) {
+                toast(tr("old_wrong"));
+                return;
+            }
+            if (newPass.getText().toString().trim().length() < 4) {
+                toast(tr("pass_short"));
+                return;
+            }
+            preferences.edit().putString("admin_password", newPass.getText().toString()).apply();
+            adminUnlocked = false;
+            toast(tr("pass_changed"));
+            dialog.dismiss();
+        }));
+        dialog.show();
     }
 
     private void addSongCards(LinearLayout parent, List<Song> songs, boolean showEmpty) {
@@ -426,13 +499,17 @@ public class MainActivity extends Activity {
         text.setOrientation(LinearLayout.VERTICAL);
         text.setGravity(Gravity.CENTER_VERTICAL);
         text.setPadding(dp(22), dp(16), dp(22), dp(16));
-        text.addView(label(title, 31, Color.WHITE, Typeface.BOLD));
-        TextView sub = label(subtitle, 16, Color.rgb(207, 231, 255), Typeface.NORMAL);
-        sub.setPadding(0, dp(10), 0, 0);
-        sub.setLineSpacing(dp(2), 1f);
-        text.addView(sub);
+        if (!title.trim().isEmpty()) {
+            text.addView(label(title, 31, Color.WHITE, Typeface.BOLD));
+        }
+        if (!subtitle.trim().isEmpty()) {
+            TextView sub = label(subtitle, 16, Color.rgb(207, 231, 255), Typeface.NORMAL);
+            sub.setPadding(0, dp(10), 0, 0);
+            sub.setLineSpacing(dp(2), 1f);
+            text.addView(sub);
+        }
         hero.addView(text, match());
-        return withMargin(hero, 0, 0, 0, dp(22), dp(170));
+        return withMargin(hero, 0, 0, 0, dp(16), dp(132));
     }
 
     private LinearLayout screen() {
@@ -472,6 +549,14 @@ public class MainActivity extends Activity {
         return view;
     }
 
+    private TextView settingRow(String title, String subtitle) {
+        TextView view = label(title + "\n" + subtitle, 16, TEXT, Typeface.BOLD);
+        view.setLineSpacing(dp(4), 1f);
+        view.setPadding(dp(18), dp(16), dp(18), dp(16));
+        view.setBackground(cardBackground(Color.WHITE, Color.rgb(220, 230, 245)));
+        return view;
+    }
+
     private EditText input(String hint) {
         EditText edit = new EditText(this);
         edit.setHint(hint);
@@ -495,6 +580,17 @@ public class MainActivity extends Activity {
         if (listener != null) {
             button.setOnClickListener(listener);
         }
+        return button;
+    }
+
+    private Button smallButton(String text, View.OnClickListener listener, boolean primary) {
+        Button button = button(text, listener, primary);
+        button.setTextSize(14);
+        button.setMinHeight(0);
+        button.setMinWidth(0);
+        button.setMinimumHeight(0);
+        button.setMinimumWidth(0);
+        button.setPadding(dp(12), 0, dp(12), 0);
         return button;
     }
 
@@ -555,6 +651,92 @@ public class MainActivity extends Activity {
 
     private void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private String tr(String key) {
+        boolean en = "en".equals(preferences.getString("language", "fr"));
+        switch (key) {
+            case "app":
+                return "Tononkira";
+            case "home":
+                return en ? "Home" : "Accueil";
+            case "search":
+                return en ? "Search" : "Recherche";
+            case "artists":
+                return en ? "Singers" : "Chanteurs";
+            case "favorites":
+                return en ? "Favorites" : "Titres préférés";
+            case "admin":
+                return en ? "Admin mode" : "Mode admin";
+            case "settings":
+                return en ? "Settings" : "Paramètres";
+            case "about":
+                return en ? "About" : "A propos";
+            case "song_list":
+                return en ? "Song list" : "Liste des chants";
+            case "search_hint":
+                return en ? "Title, singer or lyrics" : "Titre, chanteur ou parole";
+            case "all_artists":
+                return en ? "All singers" : "Tous les chanteurs";
+            case "no_artist":
+                return en ? "No singer saved." : "Aucun chanteur enregistré.";
+            case "view_songs":
+                return en ? "View songs" : "Voir les chants";
+            case "songs_by":
+                return en ? "Songs by" : "Chants de";
+            case "favorite_titles":
+                return en ? "Favorite titles" : "Titres préférés";
+            case "no_favorite":
+                return en ? "No favorite yet." : "Aucun favori pour le moment.";
+            case "lyrics":
+                return en ? "Lyrics" : "Paroles";
+            case "remove_fav":
+                return en ? "★ Remove" : "★ Retirer";
+            case "add_fav":
+                return en ? "☆ Favorite" : "☆ Favori";
+            case "song_title":
+                return en ? "Song title" : "Titre du chant";
+            case "artist_name":
+                return en ? "Singer name" : "Nom du chanteur";
+            case "save":
+                return en ? "Save" : "Enregistrer";
+            case "lock":
+                return en ? "Lock" : "Verrouiller";
+            case "fill_all":
+                return en ? "Fill in the title, singer and lyrics." : "Remplissez le titre, le chanteur et les paroles.";
+            case "song_added":
+                return en ? "Song saved." : "Chant ajouté avec succès.";
+            case "admin_password":
+                return en ? "Admin password" : "Mot de passe admin";
+            case "enter":
+                return en ? "Enter" : "Entrer";
+            case "wrong_password":
+                return en ? "Wrong password." : "Mot de passe incorrect.";
+            case "language":
+                return en ? "Language" : "Langue";
+            case "admin_security":
+                return en ? "Admin security" : "Sécurité admin";
+            case "admin_security_sub":
+                return en ? "Click to change the admin password." : "Cliquez pour modifier le mot de passe du mode admin.";
+            case "old_password":
+                return en ? "Old password" : "Ancien mot de passe";
+            case "new_password":
+                return en ? "New password" : "Nouveau mot de passe";
+            case "change":
+                return en ? "Change" : "Changer";
+            case "close":
+                return en ? "Close" : "Fermer";
+            case "old_wrong":
+                return en ? "Old password is wrong." : "Ancien mot de passe incorrect.";
+            case "pass_short":
+                return en ? "Use at least 4 characters." : "Choisissez au moins 4 caractères.";
+            case "pass_changed":
+                return en ? "Password changed." : "Mot de passe admin changé.";
+            case "about_text":
+                return en ? "APK version 1.0\nCopyright by Telina Randrenanja" : "Version APK 1.0\nCopyright by Telina Randrenanja";
+            default:
+                return key;
+        }
     }
 
     private int dp(int value) {
