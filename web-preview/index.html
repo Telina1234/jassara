@@ -43,20 +43,23 @@
 
     .phone-shell {
       width: min(430px, 100%);
+      height: 100dvh;
       min-height: 100vh;
       margin: 0 auto;
       background: var(--surface);
       box-shadow: 0 0 50px rgba(2, 11, 36, .24);
       overflow: hidden;
       position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     .phone-shell::before {
       content: "";
       position: absolute;
-      inset: 120px 24px 40px;
-      background: url("victory_voice_logo.png") center 18% / min(76%, 310px) auto no-repeat;
-      opacity: .055;
+      inset: 84px -78px -56px;
+      background: url("victory_voice_logo.png") center center / min(150%, 680px) auto no-repeat;
+      opacity: .075;
       pointer-events: none;
       z-index: 0;
     }
@@ -76,6 +79,7 @@
 
     .topbar {
       height: 82px;
+      flex: 0 0 82px;
       display: flex;
       align-items: center;
       gap: 18px;
@@ -124,13 +128,19 @@
     }
 
     main {
+      flex: 1;
+      min-height: 0;
       padding: 18px 16px 30px;
+      overflow-y: auto;
     }
 
     main.detail-screen {
-      min-height: calc(100vh - 82px);
+      height: auto;
+      min-height: 0;
       display: flex;
       flex-direction: column;
+      padding: 8px 16px 12px;
+      overflow: hidden;
     }
 
     .hero {
@@ -309,7 +319,10 @@
       align-items: center;
       column-gap: 14px;
       border: 0;
-      padding: 0 28px;
+      margin: 6px 14px;
+      width: calc(100% - 28px);
+      border-radius: 18px;
+      padding: 0 18px;
       color: var(--text);
       background: var(--card-bg);
       font: inherit;
@@ -320,7 +333,12 @@
 
     .nav-item span {
       width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
       color: var(--blue);
+      background: rgba(29, 109, 255, .10);
       font-size: 24px;
       text-align: center;
       line-height: 1;
@@ -329,6 +347,12 @@
     .nav-item b {
       line-height: 1;
       display: block;
+    }
+
+    .nav-item:hover,
+    .nav-item:focus-visible {
+      background: rgba(29, 109, 255, .11);
+      outline: 0;
     }
 
     .actions {
@@ -387,10 +411,32 @@
 
     .lyrics {
       color: var(--text);
+      border: 0;
+      border-radius: 0;
+      background: transparent;
       flex: 1;
-      min-height: 54vh;
+      min-height: 0;
+      overflow-y: auto;
       font-size: var(--lyrics-size, 19px);
       white-space: pre-wrap;
+    }
+
+    .detail-screen .title-row {
+      margin: 0 0 4px;
+    }
+
+    .detail-screen .title-row h2 {
+      font-size: 22px;
+    }
+
+    .detail-screen .song-artist {
+      margin: 0 0 8px;
+      padding: 10px 14px;
+    }
+
+    .detail-screen .actions {
+      margin: 0 0 8px;
+      gap: 8px;
     }
 
     .setting-list {
@@ -597,8 +643,8 @@
       }
 
       .phone-shell {
-        min-height: 840px;
-        max-height: 900px;
+        height: min(900px, calc(100vh - 56px));
+        min-height: 0;
         border-radius: 34px;
       }
 
@@ -629,6 +675,7 @@
         <button class="nav-item" data-view="favorites"><span>★</span><b data-i18n="favorites">Titres préférés</b></button>
         <button class="nav-item" data-view="admin"><span>＋</span><b data-i18n="admin">Mode admin</b></button>
         <button class="nav-item" data-view="settings"><span>⚙</span><b data-i18n="settings">Paramètres</b></button>
+        <button class="nav-item" data-view="transfer"><span>⇅</span><b data-i18n="importExport">Importer / Exporter</b></button>
         <button class="nav-item" data-view="about"><span>i</span><b data-i18n="about">A propos</b></button>
       </div>
     </aside>
@@ -658,6 +705,7 @@
     </div>
   </div>
   <div class="toast" id="toast"></div>
+  <input id="importFiles" type="file" accept="application/json,.json" multiple hidden>
 
   <script>
     const seedSongs = [
@@ -679,6 +727,7 @@
         favorites: "Titres préférés",
         admin: "Mode admin",
         settings: "Paramètres",
+        importExport: "Importer / Exporter",
         about: "A propos",
         latestSongs: "Liste des chants",
         searchPlaceholder: "Titre, chanteur ou parole",
@@ -731,6 +780,13 @@
         cancel: "Annuler",
         adminList: "Modifier ou supprimer un chant",
         deleteConfirm: "Supprimer ce chant ?",
+        importData: "Importer les données",
+        importDataSub: "Choisissez un ou plusieurs fichiers Victory Voice JSON.",
+        exportData: "Exporter les données",
+        exportDataSub: "Créer un seul fichier avec tous les chants et favoris.",
+        exportDone: "Export terminé.",
+        importDone: "Chants importés:",
+        transferError: "Transfert échoué.",
         aboutText: "Version APK 1.0\nCopyright by Telina Randrenanja"
       },
       en: {
@@ -741,6 +797,7 @@
         favorites: "Favorites",
         admin: "Admin mode",
         settings: "Settings",
+        importExport: "Import / Export",
         about: "About",
         latestSongs: "Song list",
         searchPlaceholder: "Title, singer or lyrics",
@@ -793,6 +850,13 @@
         cancel: "Cancel",
         adminList: "Edit or delete a song",
         deleteConfirm: "Delete this song?",
+        importData: "Import data",
+        importDataSub: "Choose one or more Victory Voice JSON files.",
+        exportData: "Export data",
+        exportDataSub: "Create one file containing all songs and favorites.",
+        exportDone: "Export finished.",
+        importDone: "Imported songs:",
+        transferError: "Transfer failed.",
         aboutText: "APK version 1.0\nCopyright by Telina Randrenanja"
       }
     };
@@ -837,6 +901,7 @@
     const adminListModal = document.querySelector("#adminListModal");
     const adminListBody = document.querySelector("#adminListBody");
     const adminListTitle = document.querySelector("#adminListTitle");
+    const importFiles = document.querySelector("#importFiles");
     let adminUnlocked = false;
     let currentRoute = { name: "home", data: null };
     let lyricsSize = Number(localStorage.getItem("tononkira_lyrics_size") || 19);
@@ -876,7 +941,7 @@
       if (push) {
         history.pushState({ name, data }, "", "#" + name);
       }
-      const views = { home, search, artists, favorites, admin, settings, about, detail, artistSongs };
+      const views = { home, search, artists, favorites, admin, settings, transfer, about, detail, artistSongs };
       views[name](data);
     }
 
@@ -993,7 +1058,7 @@
       const isFav = store.favorites.includes(song.id);
       page(L("lyrics"), `
         <div class="title-row"><h2>${escapeHtml(song.title)}</h2></div>
-        <p class="note"><strong>${escapeHtml(song.artist)}</strong></p>
+        <p class="note song-artist"><strong>${escapeHtml(song.artist)}</strong></p>
         <div class="actions">
           <button class="btn small" id="fav">${isFav ? escapeHtml(L("removeFav")) : escapeHtml(L("addFav"))}</button>
           <div class="align-controls">
@@ -1148,6 +1213,24 @@
       document.querySelector("#securityAdmin").addEventListener("click", openPasswordModal);
     }
 
+    function transfer() {
+      page(L("importExport"), `
+        ${section(L("importExport"))}
+        <div class="setting-list">
+          <button class="setting-row" id="doImport" type="button">
+            <div class="setting-icon">⬇</div>
+            <div class="setting-text"><h3>${escapeHtml(L("importData"))}</h3><p>${escapeHtml(L("importDataSub"))}</p></div>
+          </button>
+          <button class="setting-row" id="doExport" type="button">
+            <div class="setting-icon">⬆</div>
+            <div class="setting-text"><h3>${escapeHtml(L("exportData"))}</h3><p>${escapeHtml(L("exportDataSub"))}</p></div>
+          </button>
+        </div>
+      `);
+      document.querySelector("#doExport").addEventListener("click", exportData);
+      document.querySelector("#doImport").addEventListener("click", () => importFiles.click());
+    }
+
     function about() {
       const [version, copyright] = L("aboutText").split("\\n");
       page(L("about"), `<div class="note about-note"><div>${escapeHtml(version)}</div><div>${escapeHtml(copyright)}</div></div>`);
@@ -1199,6 +1282,66 @@
       showToast(L("passChanged"));
     }
 
+    function exportData() {
+      const data = {
+        app: "Victory Voice",
+        version: 1,
+        settings: {
+          language: localStorage.getItem("tononkira_language") || "fr",
+          theme: localStorage.getItem("victory_voice_theme") || "light",
+          lyricsSize,
+          lyricsAlign
+        },
+        songs: store.songs.map(song => ({
+          title: song.title,
+          artist: song.artist,
+          lyrics: song.lyrics,
+          favorite: store.favorites.includes(song.id)
+        }))
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "victory-voice-data.json";
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast(L("exportDone"));
+    }
+
+    async function importDataFiles(files) {
+      let imported = 0;
+      try {
+        for (const file of files) {
+          const data = JSON.parse(await file.text());
+          const songs = Array.isArray(data.songs) ? data.songs : [];
+          const existing = store.songs;
+          const favorites = new Set(store.favorites);
+          for (const item of songs) {
+            const title = String(item.title || "").trim();
+            const artist = String(item.artist || "").trim();
+            const lyrics = String(item.lyrics || "").trim();
+            if (!title || !artist || !lyrics) continue;
+            const found = existing.find(song => song.title.toLowerCase() === title.toLowerCase() && song.artist.toLowerCase() === artist.toLowerCase());
+            const id = found ? found.id : Date.now() + imported;
+            if (found) {
+              found.lyrics = lyrics;
+            } else {
+              existing.push({ id, title, artist, lyrics });
+            }
+            if (item.favorite) favorites.add(id);
+            imported++;
+          }
+          store.songs = existing;
+          store.favorites = [...favorites];
+        }
+        showToast(`${L("importDone")} ${imported}`);
+        home();
+      } catch (error) {
+        showToast(L("transferError"));
+      }
+    }
+
     function setLanguage(language) {
       localStorage.setItem("tononkira_language", language);
       updateStaticText();
@@ -1248,6 +1391,10 @@
     });
     adminListModal.addEventListener("click", event => {
       if (event.target === adminListModal) closeAdminListModal();
+    });
+    importFiles.addEventListener("change", () => {
+      importDataFiles([...importFiles.files]);
+      importFiles.value = "";
     });
     zoomOut.addEventListener("click", () => {
       lyricsSize = Math.max(14, lyricsSize - 2);

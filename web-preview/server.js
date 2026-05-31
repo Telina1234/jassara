@@ -22,5 +22,5 @@ http.createServer((request, response) => {
     response.end(data);
   });
 }).listen(port, "127.0.0.1", () => {
-  console.log(`Tononkira preview: http://127.0.0.1:${port}`);
+  console.log(`Victory Voice preview: http://127.0.0.1:${port}`);
 });

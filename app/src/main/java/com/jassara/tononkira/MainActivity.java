@@ -2,7 +2,10 @@ package com.jassara.tononkira;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.LinearGradient;
@@ -29,9 +32,18 @@ import android.widget.Space;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class MainActivity extends Activity {
+    private static final int REQUEST_EXPORT = 9001;
+    private static final int REQUEST_IMPORT = 9002;
     private static final int NAVY = Color.rgb(2, 11, 36);
     private static final int NAVY_SOFT = Color.rgb(7, 24, 65);
     private static final int BLUE = Color.rgb(29, 109, 255);
@@ -63,9 +75,9 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(darkMode() ? Color.rgb(7, 18, 38) : SURFACE);
         ImageView watermark = new ImageView(this);
         watermark.setImageResource(getResources().getIdentifier("victory_voice_logo", "drawable", getPackageName()));
-        watermark.setAlpha(darkMode() ? 0.05f : 0.08f);
-        watermark.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
-        watermark.setPadding(dp(34), dp(120), dp(34), dp(80));
+        watermark.setAlpha(darkMode() ? 0.08f : 0.11f);
+        watermark.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        watermark.setPadding(0, dp(70), 0, 0);
         root.addView(watermark, match());
 
         LinearLayout main = new LinearLayout(this);
@@ -167,6 +179,8 @@ public class MainActivity extends Activity {
         headerText.addView(verse, new LinearLayout.LayoutParams(matchWidth(), wrap()));
         header.addView(headerText, match());
         drawer.addView(header, new LinearLayout.LayoutParams(matchWidth(), dp(168)));
+        Space navTop = new Space(this);
+        drawer.addView(navTop, new LinearLayout.LayoutParams(matchWidth(), dp(8)));
 
         addDrawerItem(drawer, "⌂", tr("home"), () -> showHome());
         addDrawerItem(drawer, "⌕", tr("search"), () -> showSearch(""));
@@ -174,6 +188,7 @@ public class MainActivity extends Activity {
         addDrawerItem(drawer, "★", tr("favorites"), () -> showFavorites());
         addDrawerItem(drawer, "＋", tr("admin"), () -> showAdmin());
         addDrawerItem(drawer, "⚙", tr("settings"), () -> showSettings());
+        addDrawerItem(drawer, "⇅", tr("import_export"), () -> showImportExport());
         addDrawerItem(drawer, "i", tr("about"), () -> showAbout());
 
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(314), matchHeight());
@@ -186,14 +201,19 @@ public class MainActivity extends Activity {
         LinearLayout item = new LinearLayout(this);
         item.setOrientation(LinearLayout.HORIZONTAL);
         item.setGravity(Gravity.CENTER_VERTICAL);
-        item.setPadding(dp(26), 0, dp(18), 0);
+        item.setPadding(dp(14), 0, dp(14), 0);
         item.setClickable(true);
-        item.setBackgroundColor(cardFill());
+        GradientDrawable itemBg = new GradientDrawable();
+        itemBg.setColor(Color.TRANSPARENT);
+        itemBg.setCornerRadius(dp(18));
+        item.setBackground(itemBg);
 
         TextView iconView = label(icon, 28, BLUE, Typeface.BOLD);
         iconView.setGravity(Gravity.CENTER);
         iconView.setIncludeFontPadding(false);
-        item.addView(iconView, new LinearLayout.LayoutParams(dp(34), matchHeight()));
+        iconView.setBackground(circleBg(Color.argb(darkMode() ? 48 : 26, 29, 109, 255)));
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dp(38), dp(38));
+        item.addView(iconView, iconParams);
 
         TextView titleView = label(title, 18, primaryText(), Typeface.BOLD);
         titleView.setGravity(Gravity.CENTER_VERTICAL);
@@ -205,7 +225,9 @@ public class MainActivity extends Activity {
             closeDrawer();
             action.run();
         });
-        drawer.addView(item, new LinearLayout.LayoutParams(matchWidth(), dp(72)));
+        LinearLayout.LayoutParams itemParams = new LinearLayout.LayoutParams(matchWidth(), dp(64));
+        itemParams.setMargins(dp(14), dp(3), dp(14), dp(3));
+        drawer.addView(item, itemParams);
     }
 
     private void showHome() {
@@ -279,13 +301,15 @@ public class MainActivity extends Activity {
 
     private void showSong(Song song) {
         setTitleText(tr("lyrics"));
-        LinearLayout body = screen();
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(16), dp(8), dp(16), dp(10));
 
         TextView title = label(song.title, 30, primaryText(), Typeface.BOLD);
-        title.setPadding(0, dp(18), 0, 0);
+        title.setPadding(0, 0, 0, 0);
         body.addView(title);
         TextView artist = label(song.artist, 18, BLUE, Typeface.BOLD);
-        artist.setPadding(0, dp(6), 0, dp(16));
+        artist.setPadding(0, dp(2), 0, dp(8));
         body.addView(artist);
 
         final boolean[] favorite = {database.isFavorite(song.id)};
@@ -307,7 +331,7 @@ public class MainActivity extends Activity {
         detailActions.addView(left, new LinearLayout.LayoutParams(dp(38), dp(38)));
         detailActions.addView(center, new LinearLayout.LayoutParams(dp(38), dp(38)));
         detailActions.addView(right, new LinearLayout.LayoutParams(dp(38), dp(38)));
-        body.addView(detailActions, spaced(matchWidth(), dp(42), 0, 0, 0, dp(14)));
+        body.addView(detailActions, spaced(matchWidth(), dp(42), 0, 0, 0, dp(8)));
 
         int savedSize = preferences.getInt("lyrics_size", 19);
         TextView lyrics = label(song.lyrics, savedSize, primaryText(), Typeface.NORMAL);
@@ -315,8 +339,11 @@ public class MainActivity extends Activity {
         lyrics.setGravity(gravityForAlign(align));
         lyrics.setLineSpacing(dp(4), 1.08f);
         lyrics.setPadding(dp(20), dp(20), dp(20), dp(20));
-        lyrics.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
-        body.addView(lyrics, spaced(matchWidth(), dp(430), 0, 0, 0, dp(16)));
+        ScrollView lyricsScroll = new ScrollView(this);
+        lyricsScroll.setFillViewport(true);
+        lyricsScroll.setBackgroundColor(Color.TRANSPARENT);
+        lyricsScroll.addView(lyrics, new ScrollView.LayoutParams(matchWidth(), wrap()));
+        body.addView(lyricsScroll, new LinearLayout.LayoutParams(matchWidth(), 0, 1));
 
         LinearLayout zoom = new LinearLayout(this);
         zoom.setOrientation(LinearLayout.HORIZONTAL);
@@ -350,8 +377,9 @@ public class MainActivity extends Activity {
             preferences.edit().putString("lyrics_align", "right").apply();
             lyrics.setGravity(Gravity.END);
         });
-        body.addView(zoom, spaced(matchWidth(), dp(46), 0, 0, 0, dp(22)));
-        render(body);
+        body.addView(zoom, spaced(matchWidth(), dp(42), 0, dp(8), 0, 0));
+        content.removeAllViews();
+        content.addView(body, match());
     }
 
     private void showAdmin() {
@@ -446,30 +474,17 @@ public class MainActivity extends Activity {
         setTitleText(tr("settings"));
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("settings")));
+        body.addView(languageSettingCard());
+        body.addView(settingActionCard("🔒", tr("admin_security"), tr("admin_security_sub"), () -> showPasswordDialog()));
+        render(body);
+    }
 
-        TextView languageTitle = label(tr("language"), 18, TEXT, Typeface.BOLD);
-        languageTitle.setPadding(0, dp(8), 0, dp(8));
-        body.addView(languageTitle);
-        LinearLayout languageRow = new LinearLayout(this);
-        languageRow.setOrientation(LinearLayout.HORIZONTAL);
-        Button french = smallButton("Français", v -> {
-            preferences.edit().putString("language", "fr").apply();
-            recreate();
-        }, true);
-        Button english = smallButton("English", v -> {
-            preferences.edit().putString("language", "en").apply();
-            recreate();
-        }, false);
-        languageRow.addView(french, new LinearLayout.LayoutParams(wrap(), dp(40)));
-        Space langGap = new Space(this);
-        languageRow.addView(langGap, new LinearLayout.LayoutParams(dp(10), dp(40)));
-        languageRow.addView(english, new LinearLayout.LayoutParams(wrap(), dp(40)));
-        body.addView(languageRow, spaced(matchWidth(), dp(44), 0, 0, 0, dp(22)));
-
-        TextView security = settingRow(tr("admin_security"), tr("admin_security_sub"));
-        security.setClickable(true);
-        security.setOnClickListener(v -> showPasswordDialog());
-        body.addView(security);
+    private void showImportExport() {
+        setTitleText(tr("import_export"));
+        LinearLayout body = screen();
+        body.addView(sectionTitle(tr("import_export")));
+        body.addView(settingActionCard("⬇", tr("import_data"), tr("import_data_sub"), () -> startImport()));
+        body.addView(settingActionCard("⬆", tr("export_data"), tr("export_data_sub"), () -> startExport()));
         render(body);
     }
 
@@ -519,6 +534,131 @@ public class MainActivity extends Activity {
             dialog.dismiss();
         }));
         dialog.show();
+    }
+
+    private void startExport() {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_TITLE, "victory-voice-data.json");
+        startActivityForResult(intent, REQUEST_EXPORT);
+    }
+
+    private void startImport() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/json");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        startActivityForResult(intent, REQUEST_IMPORT);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_OK || data == null) {
+            return;
+        }
+        try {
+            if (requestCode == REQUEST_EXPORT && data.getData() != null) {
+                writeExportFile(data.getData());
+                toast(tr("export_done"));
+            } else if (requestCode == REQUEST_IMPORT) {
+                int imported = importSelectedFiles(data);
+                toast(tr("import_done") + " " + imported);
+                showHome();
+            }
+        } catch (Exception e) {
+            toast(tr("transfer_error"));
+        }
+    }
+
+    private void writeExportFile(Uri uri) throws Exception {
+        JSONObject root = new JSONObject();
+        root.put("app", "Victory Voice");
+        root.put("version", 1);
+        JSONObject settings = new JSONObject();
+        settings.put("language", preferences.getString("language", "fr"));
+        settings.put("dark_mode", preferences.getBoolean("dark_mode", false));
+        settings.put("lyrics_size", preferences.getInt("lyrics_size", 19));
+        settings.put("lyrics_align", preferences.getString("lyrics_align", "center"));
+        root.put("settings", settings);
+
+        JSONArray songs = new JSONArray();
+        for (Song song : database.allSongs()) {
+            JSONObject item = new JSONObject();
+            item.put("title", song.title);
+            item.put("artist", song.artist);
+            item.put("lyrics", song.lyrics);
+            item.put("favorite", database.isFavorite(song.id));
+            songs.put(item);
+        }
+        root.put("songs", songs);
+
+        OutputStream stream = getContentResolver().openOutputStream(uri);
+        if (stream == null) {
+            throw new IllegalStateException("No output stream");
+        }
+        stream.write(root.toString(2).getBytes(StandardCharsets.UTF_8));
+        stream.close();
+    }
+
+    private int importSelectedFiles(Intent data) throws Exception {
+        int imported = 0;
+        ClipData clipData = data.getClipData();
+        if (clipData != null) {
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                imported += importFile(clipData.getItemAt(i).getUri());
+            }
+            return imported;
+        }
+        Uri uri = data.getData();
+        return uri == null ? 0 : importFile(uri);
+    }
+
+    private int importFile(Uri uri) throws Exception {
+        InputStream stream = getContentResolver().openInputStream(uri);
+        if (stream == null) {
+            return 0;
+        }
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        byte[] chunk = new byte[4096];
+        int read;
+        while ((read = stream.read(chunk)) != -1) {
+            buffer.write(chunk, 0, read);
+        }
+        stream.close();
+
+        JSONObject root = new JSONObject(new String(buffer.toByteArray(), StandardCharsets.UTF_8));
+        JSONObject settings = root.optJSONObject("settings");
+        if (settings != null) {
+            preferences.edit()
+                    .putString("language", settings.optString("language", preferences.getString("language", "fr")))
+                    .putBoolean("dark_mode", settings.optBoolean("dark_mode", darkMode()))
+                    .putInt("lyrics_size", settings.optInt("lyrics_size", preferences.getInt("lyrics_size", 19)))
+                    .putString("lyrics_align", settings.optString("lyrics_align", preferences.getString("lyrics_align", "center")))
+                    .apply();
+        }
+
+        int imported = 0;
+        JSONArray songs = root.optJSONArray("songs");
+        if (songs == null) {
+            return 0;
+        }
+        for (int i = 0; i < songs.length(); i++) {
+            JSONObject item = songs.getJSONObject(i);
+            String title = item.optString("title").trim();
+            String artist = item.optString("artist").trim();
+            String lyrics = item.optString("lyrics").trim();
+            if (title.isEmpty() || artist.isEmpty() || lyrics.isEmpty()) {
+                continue;
+            }
+            long id = database.upsertSong(title, artist, lyrics);
+            if (item.optBoolean("favorite", false)) {
+                database.setFavorite(id, true);
+            }
+            imported++;
+        }
+        return imported;
     }
 
     private void showAdminListDialog() {
@@ -729,6 +869,62 @@ public class MainActivity extends Activity {
         return view;
     }
 
+    private View languageSettingCard() {
+        LinearLayout card = settingCardBase("Aa", tr("language"), tr("language_sub"));
+        LinearLayout buttons = new LinearLayout(this);
+        buttons.setOrientation(LinearLayout.HORIZONTAL);
+        buttons.setGravity(Gravity.CENTER_VERTICAL);
+        boolean en = "en".equals(preferences.getString("language", "fr"));
+        Button french = smallButton("FR", v -> {
+            preferences.edit().putString("language", "fr").apply();
+            recreate();
+        }, !en);
+        Button english = smallButton("EN", v -> {
+            preferences.edit().putString("language", "en").apply();
+            recreate();
+        }, en);
+        buttons.addView(french, new LinearLayout.LayoutParams(dp(58), dp(40)));
+        Space gap = new Space(this);
+        buttons.addView(gap, new LinearLayout.LayoutParams(dp(8), dp(40)));
+        buttons.addView(english, new LinearLayout.LayoutParams(dp(58), dp(40)));
+        card.addView(buttons, new LinearLayout.LayoutParams(wrap(), dp(44)));
+        return withMargin(card, 0, 0, 0, dp(12));
+    }
+
+    private View settingActionCard(String icon, String title, String subtitle, Runnable action) {
+        LinearLayout card = settingCardBase(icon, title, subtitle);
+        card.setClickable(true);
+        card.setOnClickListener(v -> action.run());
+        TextView arrow = label("›", 30, mutedText(), Typeface.BOLD);
+        arrow.setGravity(Gravity.CENTER);
+        card.addView(arrow, new LinearLayout.LayoutParams(dp(28), matchHeight()));
+        return withMargin(card, 0, 0, 0, dp(12));
+    }
+
+    private LinearLayout settingCardBase(String icon, String title, String subtitle) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.HORIZONTAL);
+        card.setGravity(Gravity.CENTER_VERTICAL);
+        card.setPadding(dp(16), dp(14), dp(16), dp(14));
+        card.setBackground(cardBackground(cardFill(), Color.rgb(82, 117, 169)));
+
+        TextView iconView = label(icon, 18, BLUE, Typeface.BOLD);
+        iconView.setGravity(Gravity.CENTER);
+        iconView.setBackground(circleBg(Color.argb(darkMode() ? 70 : 34, 29, 109, 255)));
+        card.addView(iconView, new LinearLayout.LayoutParams(dp(44), dp(44)));
+
+        LinearLayout text = new LinearLayout(this);
+        text.setOrientation(LinearLayout.VERTICAL);
+        text.setGravity(Gravity.CENTER_VERTICAL);
+        text.setPadding(dp(14), 0, dp(10), 0);
+        text.addView(label(title, 17, primaryText(), Typeface.BOLD));
+        TextView subtitleView = label(subtitle, 14, mutedText(), Typeface.NORMAL);
+        subtitleView.setPadding(0, dp(3), 0, 0);
+        text.addView(subtitleView);
+        card.addView(text, new LinearLayout.LayoutParams(0, wrap(), 1));
+        return card;
+    }
+
     private EditText input(String hint) {
         EditText edit = new EditText(this);
         edit.setHint(hint);
@@ -799,6 +995,13 @@ public class MainActivity extends Activity {
         bg.setColor(fill);
         bg.setCornerRadius(dp(18));
         bg.setStroke(dp(1), stroke);
+        return bg;
+    }
+
+    private GradientDrawable circleBg(int fill) {
+        GradientDrawable bg = new GradientDrawable();
+        bg.setShape(GradientDrawable.OVAL);
+        bg.setColor(fill);
         return bg;
     }
 
@@ -879,6 +1082,8 @@ public class MainActivity extends Activity {
                 return en ? "Admin mode" : "Mode admin";
             case "settings":
                 return en ? "Settings" : "Paramètres";
+            case "import_export":
+                return en ? "Import / Export" : "Importer / Exporter";
             case "about":
                 return en ? "About" : "A propos";
             case "song_list":
@@ -923,6 +1128,22 @@ public class MainActivity extends Activity {
                 return en ? "Wrong password." : "Mot de passe incorrect.";
             case "language":
                 return en ? "Language" : "Langue";
+            case "language_sub":
+                return en ? "Choose the display language." : "Choisissez la langue d'affichage.";
+            case "import_data":
+                return en ? "Import data" : "Importer les données";
+            case "import_data_sub":
+                return en ? "Choose one or more Victory Voice JSON files." : "Choisissez un ou plusieurs fichiers Victory Voice JSON.";
+            case "export_data":
+                return en ? "Export data" : "Exporter les données";
+            case "export_data_sub":
+                return en ? "Create one file containing all songs and favorites." : "Créer un seul fichier avec tous les chants et favoris.";
+            case "export_done":
+                return en ? "Export finished." : "Export terminé.";
+            case "import_done":
+                return en ? "Imported songs:" : "Chants importés:";
+            case "transfer_error":
+                return en ? "Transfer failed." : "Transfert échoué.";
             case "admin_security":
                 return en ? "Admin security" : "Sécurité admin";
             case "admin_security_sub":

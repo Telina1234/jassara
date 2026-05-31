@@ -86,6 +86,22 @@ final class TononkiraDatabase extends SQLiteOpenHelper {
         db.delete("songs", "id = ?", new String[]{String.valueOf(id)});
     }
 
+    long upsertSong(String title, String artist, String lyrics) {
+        Cursor cursor = getReadableDatabase().rawQuery(
+                "SELECT id FROM songs WHERE title = ? COLLATE NOCASE AND artist = ? COLLATE NOCASE",
+                new String[]{title.trim(), artist.trim()});
+        try {
+            if (cursor.moveToFirst()) {
+                long id = cursor.getLong(0);
+                updateSong(id, title, artist, lyrics);
+                return id;
+            }
+        } finally {
+            cursor.close();
+        }
+        return addSong(title, artist, lyrics);
+    }
+
     List<Song> allSongs() {
         return querySongs("SELECT s.id, s.title, s.artist, s.lyrics, f.song_id IS NOT NULL AS favorite " +
                 "FROM songs s LEFT JOIN favorites f ON f.song_id = s.id ORDER BY s.title COLLATE NOCASE", null);
