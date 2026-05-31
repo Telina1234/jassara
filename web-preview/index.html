@@ -139,7 +139,7 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
-      padding: 8px 16px 12px;
+      padding: 8px 16px 0;
       overflow: hidden;
     }
 
@@ -419,6 +419,7 @@
       overflow-y: auto;
       font-size: var(--lyrics-size, 19px);
       white-space: pre-wrap;
+      padding-bottom: 64px;
     }
 
     .detail-screen .title-row {
@@ -628,11 +629,20 @@
     }
 
     .about-note {
-      min-height: calc(100vh - 150px);
+      min-height: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       white-space: pre-line;
+      color: var(--text);
+      padding: 6px 2px 24px;
+    }
+
+    .signature {
+      color: var(--muted);
+      font-weight: 800;
+      text-align: center;
+      letter-spacing: .2px;
     }
 
     @media (min-width: 900px) {
@@ -787,7 +797,7 @@
         exportDone: "Export terminé.",
         importDone: "Chants importés:",
         transferError: "Transfert échoué.",
-        aboutText: "Version APK 1.0\nCopyright by Telina Randrenanja"
+        aboutText: "Version APK 1.0\n© Copyright by Telina Randrenanja"
       },
       en: {
         appTitle: "Victory Voice",
@@ -857,7 +867,7 @@
         exportDone: "Export finished.",
         importDone: "Imported songs:",
         transferError: "Transfer failed.",
-        aboutText: "APK version 1.0\nCopyright by Telina Randrenanja"
+        aboutText: "APK version 1.0\n© Copyright by Telina Randrenanja"
       }
     };
 
@@ -1233,7 +1243,7 @@
 
     function about() {
       const [version, copyright] = L("aboutText").split("\\n");
-      page(L("about"), `<div class="note about-note"><div>${escapeHtml(version)}</div><div>${escapeHtml(copyright)}</div></div>`);
+      page(L("about"), `<div class="about-note"><div>${escapeHtml(version)}</div><div class="signature">${escapeHtml(copyright)}</div></div>`);
     }
 
     function toggleFavorite(id) {

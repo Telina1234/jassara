@@ -60,6 +60,10 @@ public class MainActivity extends Activity {
     private TextView toolbarTitle;
     private boolean adminUnlocked;
     private Long editingSongId;
+    private String currentScreen = "home";
+    private Long currentSongId;
+    private String currentArtist;
+    private String currentSearchTerm = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,7 +97,36 @@ public class MainActivity extends Activity {
         root.addView(drawerLayer, match());
         setContentView(root);
 
-        showHome();
+        if (savedInstanceState != null) {
+            currentScreen = savedInstanceState.getString("screen", "home");
+            currentArtist = savedInstanceState.getString("artist", null);
+            currentSearchTerm = savedInstanceState.getString("search", "");
+            if (savedInstanceState.containsKey("song_id")) {
+                currentSongId = savedInstanceState.getLong("song_id");
+            }
+            adminUnlocked = savedInstanceState.getBoolean("admin_unlocked", false);
+            if (savedInstanceState.containsKey("editing_song_id")) {
+                editingSongId = savedInstanceState.getLong("editing_song_id");
+            }
+            showCurrentScreen();
+        } else {
+            showHome();
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("screen", currentScreen);
+        outState.putString("artist", currentArtist);
+        outState.putString("search", currentSearchTerm);
+        outState.putBoolean("admin_unlocked", adminUnlocked);
+        if (currentSongId != null) {
+            outState.putLong("song_id", currentSongId);
+        }
+        if (editingSongId != null) {
+            outState.putLong("editing_song_id", editingSongId);
+        }
     }
 
     @Override
@@ -230,7 +263,39 @@ public class MainActivity extends Activity {
         drawer.addView(item, itemParams);
     }
 
+    private void showCurrentScreen() {
+        if ("search".equals(currentScreen)) {
+            showSearch(currentSearchTerm);
+        } else if ("artists".equals(currentScreen)) {
+            showArtists();
+        } else if ("artist_songs".equals(currentScreen) && currentArtist != null) {
+            showArtistSongs(currentArtist);
+        } else if ("favorites".equals(currentScreen)) {
+            showFavorites();
+        } else if ("song".equals(currentScreen)) {
+            Song song = findSong(currentSongId);
+            if (song != null) {
+                showSong(song);
+            } else {
+                showHome();
+            }
+        } else if ("admin".equals(currentScreen)) {
+            showAdmin();
+        } else if ("settings".equals(currentScreen)) {
+            showSettings();
+        } else if ("import_export".equals(currentScreen)) {
+            showImportExport();
+        } else if ("about".equals(currentScreen)) {
+            showAbout();
+        } else {
+            showHome();
+        }
+    }
+
     private void showHome() {
+        currentScreen = "home";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("app"));
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("song_list")));
@@ -239,6 +304,10 @@ public class MainActivity extends Activity {
     }
 
     private void showSearch(String initialTerm) {
+        currentScreen = "search";
+        currentSongId = null;
+        currentArtist = null;
+        currentSearchTerm = initialTerm == null ? "" : initialTerm;
         setTitleText(tr("search"));
         LinearLayout body = screen();
 
@@ -254,6 +323,7 @@ public class MainActivity extends Activity {
         Runnable refresh = () -> {
             results.removeAllViews();
             String term = search.getText().toString();
+            currentSearchTerm = term;
             List<Song> songs = term.trim().isEmpty() ? database.allSongs() : database.search(term);
             addSongCards(results, songs, true);
         };
@@ -263,6 +333,9 @@ public class MainActivity extends Activity {
     }
 
     private void showArtists() {
+        currentScreen = "artists";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("artists"));
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("all_artists")));
@@ -279,6 +352,9 @@ public class MainActivity extends Activity {
     }
 
     private void showArtistSongs(String artist) {
+        currentScreen = "artist_songs";
+        currentSongId = null;
+        currentArtist = artist;
         setTitleText(artist);
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("songs_by") + " " + artist));
@@ -287,6 +363,9 @@ public class MainActivity extends Activity {
     }
 
     private void showFavorites() {
+        currentScreen = "favorites";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("favorites"));
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("favorite_titles")));
@@ -300,10 +379,14 @@ public class MainActivity extends Activity {
     }
 
     private void showSong(Song song) {
+        currentScreen = "song";
+        currentSongId = song.id;
+        currentArtist = null;
         setTitleText(tr("lyrics"));
+        FrameLayout page = new FrameLayout(this);
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.VERTICAL);
-        body.setPadding(dp(16), dp(8), dp(16), dp(10));
+        body.setPadding(dp(16), dp(8), dp(16), 0);
 
         TextView title = label(song.title, 30, primaryText(), Typeface.BOLD);
         title.setPadding(0, 0, 0, 0);
@@ -338,22 +421,15 @@ public class MainActivity extends Activity {
         String align = preferences.getString("lyrics_align", "center");
         lyrics.setGravity(gravityForAlign(align));
         lyrics.setLineSpacing(dp(4), 1.08f);
-        lyrics.setPadding(dp(20), dp(20), dp(20), dp(20));
+        lyrics.setPadding(dp(20), dp(20), dp(20), dp(62));
         ScrollView lyricsScroll = new ScrollView(this);
         lyricsScroll.setFillViewport(true);
         lyricsScroll.setBackgroundColor(Color.TRANSPARENT);
         lyricsScroll.addView(lyrics, new ScrollView.LayoutParams(matchWidth(), wrap()));
         body.addView(lyricsScroll, new LinearLayout.LayoutParams(matchWidth(), 0, 1));
 
-        LinearLayout zoom = new LinearLayout(this);
-        zoom.setOrientation(LinearLayout.HORIZONTAL);
-        zoom.setGravity(Gravity.CENTER_VERTICAL);
         Button minus = translucentButton("-", null);
         Button plus = translucentButton("+", null);
-        Space gap = new Space(this);
-        zoom.addView(minus, new LinearLayout.LayoutParams(dp(36), dp(36)));
-        zoom.addView(gap, new LinearLayout.LayoutParams(0, dp(42), 1));
-        zoom.addView(plus, new LinearLayout.LayoutParams(dp(36), dp(36)));
         final int[] size = {savedSize};
         minus.setOnClickListener(v -> {
             size[0] = Math.max(14, size[0] - 2);
@@ -377,12 +453,25 @@ public class MainActivity extends Activity {
             preferences.edit().putString("lyrics_align", "right").apply();
             lyrics.setGravity(Gravity.END);
         });
-        body.addView(zoom, spaced(matchWidth(), dp(42), 0, dp(8), 0, 0));
+        page.addView(body, match());
+        FrameLayout.LayoutParams minusParams = new FrameLayout.LayoutParams(dp(36), dp(36));
+        minusParams.gravity = Gravity.START | Gravity.BOTTOM;
+        minusParams.leftMargin = dp(16);
+        minusParams.bottomMargin = dp(12);
+        page.addView(minus, minusParams);
+        FrameLayout.LayoutParams plusParams = new FrameLayout.LayoutParams(dp(36), dp(36));
+        plusParams.gravity = Gravity.END | Gravity.BOTTOM;
+        plusParams.rightMargin = dp(16);
+        plusParams.bottomMargin = dp(12);
+        page.addView(plus, plusParams);
         content.removeAllViews();
-        content.addView(body, match());
+        content.addView(page, match());
     }
 
     private void showAdmin() {
+        currentScreen = "admin";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("admin"));
         if (!adminUnlocked) {
             showAdminLogin();
@@ -471,6 +560,9 @@ public class MainActivity extends Activity {
     }
 
     private void showSettings() {
+        currentScreen = "settings";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("settings"));
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("settings")));
@@ -480,6 +572,9 @@ public class MainActivity extends Activity {
     }
 
     private void showImportExport() {
+        currentScreen = "import_export";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("import_export"));
         LinearLayout body = screen();
         body.addView(sectionTitle(tr("import_export")));
@@ -489,15 +584,25 @@ public class MainActivity extends Activity {
     }
 
     private void showAbout() {
+        currentScreen = "about";
+        currentSongId = null;
+        currentArtist = null;
         setTitleText(tr("about"));
-        LinearLayout body = screen();
+        LinearLayout body = new LinearLayout(this);
+        body.setOrientation(LinearLayout.VERTICAL);
+        body.setPadding(dp(18), dp(18), dp(18), dp(24));
         String[] lines = tr("about_text").split("\\n", 2);
-        TextView version = note(lines[0]);
-        body.addView(version, spaced(matchWidth(), wrap(), 0, 0, 0, 0));
+        TextView version = label(lines[0], 17, primaryText(), Typeface.NORMAL);
+        version.setPadding(0, 0, 0, 0);
+        body.addView(version, new LinearLayout.LayoutParams(matchWidth(), wrap()));
         Space spacer = new Space(this);
-        body.addView(spacer, new LinearLayout.LayoutParams(matchWidth(), dp(420)));
-        body.addView(note(lines.length > 1 ? lines[1] : "Copyright by Telina Randrenanja"));
-        render(body);
+        body.addView(spacer, new LinearLayout.LayoutParams(matchWidth(), 0, 1));
+        TextView signature = label(lines.length > 1 ? lines[1] : "© Copyright by Telina Randrenanja", 16, mutedText(), Typeface.BOLD);
+        signature.setGravity(Gravity.CENTER);
+        signature.setPadding(0, dp(12), 0, 0);
+        body.addView(signature, new LinearLayout.LayoutParams(matchWidth(), wrap()));
+        content.removeAllViews();
+        content.addView(body, match());
     }
 
     private void showPasswordDialog() {
@@ -1173,7 +1278,7 @@ public class MainActivity extends Activity {
             case "admin_list":
                 return en ? "Edit or delete a song" : "Modifier ou supprimer un chant";
             case "about_text":
-                return en ? "APK version 1.0\nCopyright by Telina Randrenanja" : "Version APK 1.0\nCopyright by Telina Randrenanja";
+                return en ? "APK version 1.0\n© Copyright by Telina Randrenanja" : "Version APK 1.0\n© Copyright by Telina Randrenanja";
             default:
                 return key;
         }
