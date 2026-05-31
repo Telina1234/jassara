@@ -155,6 +155,16 @@ public class MainActivity extends Activity {
         headerText.setGravity(Gravity.CENTER_VERTICAL);
         headerText.setPadding(dp(28), dp(12), dp(18), dp(12));
         headerText.addView(label(tr("app"), 34, Color.WHITE, Typeface.BOLD));
+        TextView verse = label("'Ezaho ny fiantsonao, fa aza atao malemy, Asandrato ny feonao ho tahaka ny an'ny anjomara.'\nIsaia 58:1", 15, Color.rgb(217, 236, 255), Typeface.NORMAL);
+        try {
+            verse.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/BRADHITC.TTF"));
+        } catch (RuntimeException ignored) {
+            verse.setTypeface(Typeface.create(Typeface.SERIF, Typeface.ITALIC));
+        }
+        verse.setGravity(Gravity.END);
+        verse.setLineSpacing(dp(2), 1f);
+        verse.setPadding(0, dp(8), dp(8), 0);
+        headerText.addView(verse, new LinearLayout.LayoutParams(matchWidth(), wrap()));
         header.addView(headerText, match());
         drawer.addView(header, new LinearLayout.LayoutParams(matchWidth(), dp(168)));
 
@@ -182,10 +192,13 @@ public class MainActivity extends Activity {
 
         TextView iconView = label(icon, 28, BLUE, Typeface.BOLD);
         iconView.setGravity(Gravity.CENTER);
-        item.addView(iconView, new LinearLayout.LayoutParams(dp(44), matchHeight()));
+        iconView.setIncludeFontPadding(false);
+        item.addView(iconView, new LinearLayout.LayoutParams(dp(34), matchHeight()));
 
         TextView titleView = label(title, 18, primaryText(), Typeface.BOLD);
-        titleView.setPadding(dp(16), 0, 0, 0);
+        titleView.setGravity(Gravity.CENTER_VERTICAL);
+        titleView.setIncludeFontPadding(false);
+        titleView.setPadding(dp(14), 0, 0, 0);
         item.addView(titleView, new LinearLayout.LayoutParams(0, matchHeight(), 1));
 
         item.setOnClickListener(v -> {
@@ -555,7 +568,14 @@ public class MainActivity extends Activity {
         TextView title = label(song.title, 20, primaryText(), Typeface.BOLD);
         titleLine.addView(title, new LinearLayout.LayoutParams(0, wrap(), 1));
         TextView star = label(database.isFavorite(song.id) ? "★" : "☆", 24, BLUE, Typeface.BOLD);
-        titleLine.addView(star, new LinearLayout.LayoutParams(dp(34), wrap()));
+        star.setGravity(Gravity.CENTER);
+        star.setClickable(true);
+        star.setOnClickListener(v -> {
+            boolean next = !database.isFavorite(song.id);
+            database.setFavorite(song.id, next);
+            star.setText(next ? "★" : "☆");
+        });
+        titleLine.addView(star, new LinearLayout.LayoutParams(dp(48), dp(48)));
         card.addView(titleLine);
 
         TextView artist = label(song.artist, 16, BLUE, Typeface.BOLD);

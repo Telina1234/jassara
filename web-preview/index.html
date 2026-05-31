@@ -234,6 +234,11 @@
       color: var(--blue);
       font-size: 25px;
       cursor: pointer;
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
     }
 
     .drawer {
@@ -278,17 +283,31 @@
     .drawer-header h2 { font-size: 34px; }
 
     .drawer-header p {
-      color: #cfe7ff;
-      font-weight: 800;
-      margin-top: 8px;
+      max-width: 270px;
+      color: #d9ecff;
+      font-family: "Bradley Hand ITC", "Segoe Print", cursive;
+      font-size: 16px;
+      font-style: normal;
+      font-weight: 600;
+      line-height: 1.38;
+      margin-top: 12px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, .28);
+    }
+
+    .drawer-header .verse-ref {
+      display: block;
+      margin-top: 5px;
+      text-align: right;
+      font-size: 15px;
     }
 
     .nav-item {
       width: 100%;
       min-height: 64px;
-      display: flex;
+      display: grid;
+      grid-template-columns: 34px 1fr;
       align-items: center;
-      gap: 18px;
+      column-gap: 14px;
       border: 0;
       padding: 0 28px;
       color: var(--text);
@@ -304,6 +323,12 @@
       color: var(--blue);
       font-size: 24px;
       text-align: center;
+      line-height: 1;
+    }
+
+    .nav-item b {
+      line-height: 1;
+      display: block;
     }
 
     .actions {
@@ -596,6 +621,7 @@
       <div class="drawer-panel">
         <div class="drawer-header">
           <h2>Victory Voice</h2>
+          <p>'Ezaho ny fiantsonao, fa aza atao malemy, Asandrato ny feonao ho tahaka ny an'ny anjomara.'<span class="verse-ref">Isaia 58:1</span></p>
         </div>
         <button class="nav-item" data-view="home"><span>⌂</span><b data-i18n="home">Accueil</b></button>
         <button class="nav-item" data-view="search"><span>⌕</span><b data-i18n="search">Recherche</b></button>
