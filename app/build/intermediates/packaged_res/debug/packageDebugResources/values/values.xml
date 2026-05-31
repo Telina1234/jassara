@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="blue">#1D6DFF</color>
+    <color name="cyan">#54D9FF</color>
+    <color name="navy">#020B24</color>
+    <color name="white">#FFFFFF</color>
+    <string name="app_name">Tononkira</string>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:navigationBarColor">#020B24</item>
+        <item name="android:colorAccent">#1D6DFF</item>
+    </style>
+</resources>

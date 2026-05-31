@@ -1,0 +1,7 @@
+com.jassara.tononkira.app-pngs-0 I:\Jassara\app\build\generated\res\pngs\debug
+com.jassara.tononkira.app-resValues-1 I:\Jassara\app\build\generated\res\resValues\debug
+com.jassara.tononkira.app-packageDebugResources-2 I:\Jassara\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
+com.jassara.tononkira.app-packageDebugResources-3 I:\Jassara\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
+com.jassara.tononkira.app-debug-4 I:\Jassara\app\build\intermediates\merged_res\debug\mergeDebugResources
+com.jassara.tononkira.app-debug-5 I:\Jassara\app\src\debug\res
+com.jassara.tononkira.app-main-6 I:\Jassara\app\src\main\res

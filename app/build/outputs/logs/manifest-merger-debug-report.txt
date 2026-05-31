@@ -1,0 +1,61 @@
+-- Merging decision tree log ---
+manifest
+ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:2:1-22:12
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml:2:1-22:12
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml:2:1-22:12
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml:2:1-22:12
+	package
+		INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+	android:versionName
+		INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+	android:versionCode
+		INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:2:11-69
+application
+ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:3:5-21:19
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml:3:5-21:19
+	android:extractNativeLibs
+		INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+	android:supportsRtl
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:8:9-35
+	android:label
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:6:9-41
+	android:roundIcon
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:7:9-61
+	android:icon
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:5:9-56
+	android:allowBackup
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:4:9-35
+	android:theme
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:9:9-40
+activity#com.jassara.tononkira.MainActivity
+ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:10:9-20:20
+	android:screenOrientation
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:15:13-49
+	android:label
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:14:13-45
+	android:exported
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:12:13-36
+	android:icon
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:13:13-60
+	android:name
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:11:13-41
+intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
+ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:16:13-19:29
+action#android.intent.action.MAIN
+ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:17:17-69
+	android:name
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:17:25-66
+category#android.intent.category.LAUNCHER
+ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:18:17-77
+	android:name
+		ADDED from I:\Jassara\app\src\main\AndroidManifest.xml:18:27-74
+uses-sdk
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from I:\Jassara\app\src\main\AndroidManifest.xml
